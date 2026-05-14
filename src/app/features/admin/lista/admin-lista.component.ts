@@ -97,6 +97,9 @@ export class AdminListaComponent implements OnInit {
     return m[e] ?? '';
   }
 
+  irACarreras(): void { this.router.navigate(['/admin/carreras']); }
+  irADocentes(): void { this.router.navigate(['/admin/docentes']); }
+
   logout(): void {
     this.authService.logout();
   }

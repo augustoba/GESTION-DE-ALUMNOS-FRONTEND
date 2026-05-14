@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -30,7 +30,7 @@ const OBLIGATORIOS = ['DNI_FRENTE', 'DNI_DORSO', 'TITULO', 'FOTO_CARNET'];
   templateUrl: './admin-revision.component.html',
   styleUrl: './admin-revision.component.scss'
 })
-export class AdminRevisionComponent implements OnInit {
+export class AdminRevisionComponent implements OnInit, OnDestroy {
   private route        = inject(ActivatedRoute);
   private router       = inject(Router);
   private adminService = inject(AdminService);
@@ -42,6 +42,9 @@ export class AdminRevisionComponent implements OnInit {
   loading        = signal(true);
   guardando      = signal(false);
   decisiones     = signal<Record<number, EstadoDocumento>>({});
+  fotoUrl        = signal<string | null>(null);
+
+  private _fotoObjectUrl: string | null = null;
 
   docsObligatorios = computed(() =>
     (this.preinscripcion()?.documentos ?? []).filter(d => OBLIGATORIOS.includes(d.tipo))
@@ -51,9 +54,10 @@ export class AdminRevisionComponent implements OnInit {
     (this.preinscripcion()?.documentos ?? []).filter(d => !OBLIGATORIOS.includes(d.tipo))
   );
 
+  // todos los documentos deben tener decisión antes de confirmar
   todasDecididas = computed(() => {
-    const docs = this.docsObligatorios();
-    return docs.length > 0 && docs.every(d => this.decisiones()[d.id] != null);
+    const todos = [...this.docsObligatorios(), ...this.docsOtros()];
+    return todos.length > 0 && todos.every(d => this.decisiones()[d.id] != null);
   });
 
   ngOnInit(): void {
@@ -61,17 +65,30 @@ export class AdminRevisionComponent implements OnInit {
     this.adminService.getDetalle(id).subscribe({
       next: res => {
         this.preinscripcion.set(res.data);
+
+        // pre-cargar decisiones para docs que ya tienen estado
         const init: Record<number, EstadoDocumento> = {};
         res.data.documentos.forEach(d => {
-          if (OBLIGATORIOS.includes(d.tipo) && d.estado !== 'PENDIENTE') {
-            init[d.id] = d.estado;
-          }
+          if (d.estado !== 'PENDIENTE') init[d.id] = d.estado;
         });
         this.decisiones.set(init);
+
+        // cargar foto carnet para mostrar en el card del alumno
+        const fotoDoc = res.data.documentos.find(d => d.tipo === 'FOTO_CARNET');
+        if (fotoDoc) {
+          this.adminService.getDocumentoBlob(fotoDoc.id).subscribe(blob => {
+            this._fotoObjectUrl = URL.createObjectURL(blob);
+            this.fotoUrl.set(this._fotoObjectUrl);
+          });
+        }
       },
       complete: () => this.loading.set(false),
       error:    () => this.loading.set(false)
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this._fotoObjectUrl) URL.revokeObjectURL(this._fotoObjectUrl);
   }
 
   getDecision(docId: number): EstadoDocumento | null {
@@ -125,7 +142,11 @@ export class AdminRevisionComponent implements OnInit {
       this.guardando.set(true);
       const id = this.preinscripcion()!.id;
 
-      const decisiones = this.docsObligatorios().map(d => ({
+      // incluir TODOS los documentos en la revisión
+      const decisiones = [
+        ...this.docsObligatorios(),
+        ...this.docsOtros()
+      ].map(d => ({
         documentoId: d.id,
         estado: this.decisiones()[d.id] as EstadoDocumento
       }));
@@ -150,11 +171,8 @@ export class AdminRevisionComponent implements OnInit {
     });
   }
 
-  volver(): void {
-    this.router.navigate(['/admin/lista']);
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
+  volver():     void { this.router.navigate(['/admin/lista']); }
+  irACarreras():void { this.router.navigate(['/admin/carreras']); }
+  irADocentes():void { this.router.navigate(['/admin/docentes']); }
+  logout():     void { this.authService.logout(); }
 }

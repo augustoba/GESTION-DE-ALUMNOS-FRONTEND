@@ -152,29 +152,75 @@
   border-top: 4px solid var(--color-primary) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-sm) !important;
-
-  mat-card-header { padding: 20px 20px 12px; }
 }
 
-.alumno-avatar-icon {
-  color: var(--color-primary) !important;
-  font-size: 36px !important;
-  height: 36px !important;
-  width: 36px !important;
+.alumno-content {
+  display: flex;
+  gap: 24px;
+  padding: 20px !important;
+  align-items: flex-start;
 }
 
-.alumno-data {
+/* Foto carnet */
+.alumno-foto-wrap {
+  flex-shrink: 0;
+}
+
+.alumno-foto {
+  width: 110px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.alumno-foto-placeholder {
+  width: 110px;
+  height: 140px;
+  border-radius: 8px;
+  border: 2px dashed var(--color-border);
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--color-text-muted);
+    opacity: 0.4;
+  }
+}
+
+.alumno-info { flex: 1; }
+
+.alumno-nombre {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.alumno-carrera {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.alumno-datos-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
-  padding: 0 20px 12px;
 }
 
 .dato {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 14px 20px 14px 0;
+  padding: 10px 20px 10px 0;
   width: 50%;
   min-width: 200px;
 

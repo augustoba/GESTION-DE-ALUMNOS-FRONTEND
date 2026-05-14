@@ -1,0 +1,170 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="sidenav-logo" />
+      <span class="sidenav-inst">IES Alfredo Coviello</span>
+    </div>
+    <mat-divider />
+    <mat-nav-list class="nav-list">
+      <mat-list-item (click)="irALista()">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Preinscripciones</span>
+      </mat-list-item>
+      <mat-list-item (click)="irACarreras()">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Carreras</span>
+      </mat-list-item>
+      <mat-list-item (click)="volver()" class="active-item">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Docentes</span>
+      </mat-list-item>
+    </mat-nav-list>
+    <div class="sidenav-footer">
+      <mat-divider />
+      <div class="sidenav-user">
+        <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
+        <div class="user-name-text">
+          <span class="user-nombre">Administrador</span>
+          <span class="user-rol">Admin</span>
+        </div>
+      </div>
+      <mat-divider />
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon> Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="volver()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <mat-icon class="toolbar-icon">person</mat-icon>
+      @if (docente()) {
+        <span class="toolbar-title">{{ docente()!.nombres }} {{ docente()!.apellidos }}</span>
+        <span [class]="'estado-chip ' + (docente()!.activo ? 'chip-success' : 'chip-muted')">
+          {{ docente()!.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      } @else {
+        <span class="toolbar-title">Docente</span>
+      }
+      <span class="spacer"></span>
+    </mat-toolbar>
+
+    <div class="content-area">
+
+      <!-- Card del docente -->
+      @if (docente(); as d) {
+        <mat-card class="docente-card">
+          <mat-card-content class="docente-content">
+            <div class="docente-avatar-lg">
+              {{ d.nombres[0] }}{{ d.apellidos[0] }}
+            </div>
+            <div class="docente-info">
+              <div class="docente-nombre-lg">{{ d.nombres }} {{ d.apellidos }}</div>
+              <div class="docente-datos">
+                <span class="dato-item">
+                  <mat-icon>badge</mat-icon> {{ d.dni }}
+                </span>
+                <span class="dato-item">
+                  <mat-icon>email</mat-icon> {{ d.email }}
+                </span>
+                @if (d.telefono) {
+                  <span class="dato-item">
+                    <mat-icon>phone</mat-icon> {{ d.telefono }}
+                  </span>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Materias -->
+      <div class="materias-header">
+        <h3 class="section-title">
+          <mat-icon>menu_book</mat-icon>
+          Materias asignadas
+        </h3>
+        @if (!loading()) {
+          <span class="materias-count">{{ materias().length }} materia{{ materias().length !== 1 ? 's' : '' }}</span>
+        }
+      </div>
+
+      @if (loading()) {
+        <div class="loading-center"><mat-spinner diameter="40" /></div>
+
+      } @else if (materias().length === 0) {
+        <div class="empty-materias">
+          <mat-icon>menu_book</mat-icon>
+          <p>Este docente no tiene materias asignadas aún.</p>
+          <span class="empty-hint">
+            Para asignar materias, ingresá a la carrera correspondiente y editá la materia.
+          </span>
+        </div>
+
+      } @else {
+
+        <!-- Agrupado por carrera -->
+        @for (grupo of materiasPorCarrera(); track grupo.carrera) {
+
+          <div class="carrera-grupo">
+            <div class="carrera-grupo-header">
+              <mat-icon>school</mat-icon>
+              <span class="carrera-nombre">{{ grupo.carrera }}</span>
+              <span class="carrera-count">{{ grupo.items.length }} materia{{ grupo.items.length !== 1 ? 's' : '' }}</span>
+            </div>
+
+            <div class="materias-grid">
+              @for (m of grupo.items; track m.id) {
+                <div class="materia-card">
+
+                  <!-- Encabezado: nombre + año -->
+                  <div class="materia-card-top">
+                    <span class="materia-nombre">{{ m.nombre }}</span>
+                    @if (m.numeroAnio > 0) {
+                      <span class="anio-badge">{{ m.numeroAnio }}° año</span>
+                    }
+                  </div>
+
+                  @if (m.descripcion) {
+                    <p class="materia-desc">{{ m.descripcion }}</p>
+                  }
+
+                  <!-- Horario -->
+                  @if (m.diaSemana || m.horaInicio || m.aula) {
+                    <div class="horario-row">
+                      @if (m.diaSemana) {
+                        <span class="horario-chip chip-dia">
+                          <mat-icon>event</mat-icon>
+                          {{ diaSemanaLabel(m.diaSemana) }}
+                        </span>
+                      }
+                      @if (m.horaInicio && m.horaFin) {
+                        <span class="horario-chip chip-hora">
+                          <mat-icon>schedule</mat-icon>
+                          {{ m.horaInicio }} - {{ m.horaFin }}
+                        </span>
+                      }
+                      @if (m.aula) {
+                        <span class="horario-chip chip-aula">
+                          <mat-icon>door_front</mat-icon>
+                          Aula {{ m.aula }}
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="sin-horario">Sin horario asignado</span>
+                  }
+
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

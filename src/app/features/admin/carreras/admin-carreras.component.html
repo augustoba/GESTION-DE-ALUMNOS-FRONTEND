@@ -1,0 +1,117 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="sidenav-logo" />
+      <span class="sidenav-inst">IES Alfredo Coviello</span>
+    </div>
+    <mat-divider />
+    <mat-nav-list class="nav-list">
+      <mat-list-item (click)="irALista()">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Preinscripciones</span>
+      </mat-list-item>
+      <mat-list-item class="active-item">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Carreras</span>
+      </mat-list-item>
+      <mat-list-item routerLink="/admin/docentes">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Docentes</span>
+      </mat-list-item>
+    </mat-nav-list>
+    <div class="sidenav-footer">
+      <mat-divider />
+      <div class="sidenav-user">
+        <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
+        <div class="user-name-text">
+          <span class="user-nombre">Administrador</span>
+          <span class="user-rol">Admin</span>
+        </div>
+      </div>
+      <mat-divider />
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon> Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar class="toolbar">
+      <mat-icon class="toolbar-icon">school</mat-icon>
+      <span class="toolbar-title">Carreras</span>
+      <span class="spacer"></span>
+      <button mat-flat-button color="primary" (click)="nueva()">
+        <mat-icon>add</mat-icon> Nueva carrera
+      </button>
+    </mat-toolbar>
+
+    <div class="content-area">
+
+      @if (loading()) {
+        <div class="loading-center">
+          <mat-spinner diameter="48" />
+        </div>
+      } @else {
+
+        @if (carreras().length === 0) {
+          <div class="empty-state">
+            <mat-icon>school</mat-icon>
+            <p>No hay carreras registradas</p>
+            <button mat-flat-button color="primary" (click)="nueva()">Crear primera carrera</button>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="carreras()" class="carreras-table">
+
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Nombre</th>
+              <td mat-cell *matCellDef="let row">
+                <strong>{{ row.nombre }}</strong>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="descripcion">
+              <th mat-header-cell *matHeaderCellDef>Descripción</th>
+              <td mat-cell *matCellDef="let row">{{ row.descripcion || '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="activa">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let row">
+                <span [class]="'estado-chip ' + (row.activa ? 'chip-success' : 'chip-muted')">
+                  {{ row.activa ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="cupoMaximo">
+              <th mat-header-cell *matHeaderCellDef>Cupo</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.cupoMaximo === 0 ? 'Sin límite' : row.cupoMaximo }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let row" class="acciones-cell">
+                <button mat-icon-button color="primary" (click)="verDetalle(row.id)"
+                  matTooltip="Ver años y materias">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editar(row)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminar(row.id)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        }
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

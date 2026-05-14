@@ -1,0 +1,231 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="sidenav-logo" />
+      <span class="sidenav-inst">IES Alfredo Coviello</span>
+    </div>
+    <mat-divider />
+    <mat-nav-list class="nav-list">
+      <mat-list-item (click)="router.navigate(['/admin/lista'])">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Preinscripciones</span>
+      </mat-list-item>
+      <mat-list-item (click)="volver()" class="active-item">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Carreras</span>
+      </mat-list-item>
+      <mat-list-item (click)="router.navigate(['/admin/docentes'])">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Docentes</span>
+      </mat-list-item>
+    </mat-nav-list>
+    <div class="sidenav-footer">
+      <mat-divider />
+      <div class="sidenav-user">
+        <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
+        <div class="user-name-text">
+          <span class="user-nombre">Administrador</span>
+          <span class="user-rol">Admin</span>
+        </div>
+      </div>
+      <mat-divider />
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon> Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="volver()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <mat-icon class="toolbar-icon">school</mat-icon>
+      @if (carrera()) {
+        <span class="toolbar-title">{{ carrera()!.nombre }}</span>
+        <span [class]="'estado-chip ' + (carrera()!.activa ? 'chip-success' : 'chip-muted')">
+          {{ carrera()!.activa ? 'Activa' : 'Inactiva' }}
+        </span>
+      } @else {
+        <span class="toolbar-title">Carrera</span>
+      }
+      <span class="spacer"></span>
+      @if ((carrera()?.anios?.length ?? 0) > 0) {
+        <button mat-stroked-button (click)="agregarSiguienteAnio()" [disabled]="loading()">
+          <mat-icon>add</mat-icon> Agregar año
+        </button>
+      }
+    </mat-toolbar>
+
+    <div class="content-area">
+
+      @if (loading()) {
+        <div class="loading-center"><mat-spinner diameter="48" /></div>
+
+      } @else if (carrera(); as c) {
+
+        @if (c.anios.length === 0) {
+          <mat-card class="configurar-card">
+            <mat-card-content>
+              <div class="configurar-icon-wrap">
+                <mat-icon>school</mat-icon>
+              </div>
+              <h3 class="configurar-titulo">Configurar duración de la carrera</h3>
+              <p class="configurar-desc">
+                Indicá cuántos años tiene <strong>{{ c.nombre }}</strong> y se crearán
+                automáticamente todos los años para que puedas agregar materias y docentes.
+              </p>
+              <div class="configurar-form">
+                <mat-form-field appearance="outline" class="anios-field">
+                  <mat-label>Cantidad de años</mat-label>
+                  <input matInput type="number" [formControl]="cantAniosCtrl" min="1" max="10" />
+                  <mat-hint>Ej: 3 creará 1°, 2° y 3° año</mat-hint>
+                </mat-form-field>
+                <button
+                  mat-flat-button color="primary"
+                  class="btn-configurar"
+                  [disabled]="cantAniosCtrl.invalid || loading()"
+                  (click)="configurarAnios()">
+                  <mat-icon>check</mat-icon>
+                  Configurar
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+
+        <!-- ── Accordion por año ─────────────────────── -->
+        <mat-accordion multi class="anios-accordion">
+          @for (anio of c.anios; track anio.id) {
+
+            <mat-expansion-panel [expanded]="true" class="anio-panel">
+
+              <!-- Header del año -->
+              <mat-expansion-panel-header class="anio-panel-header">
+                <mat-panel-title class="anio-title">
+                  <span class="anio-numero">{{ anio.numeroAnio }}°</span>
+                  <span class="anio-label">Año</span>
+                  <span class="materias-badge">
+                    {{ anio.materias.length }} materia{{ anio.materias.length !== 1 ? 's' : '' }}
+                  </span>
+                </mat-panel-title>
+                <mat-panel-description class="anio-description">
+                  @if (anio.materias.length > 0) {
+                    <span class="docentes-preview">
+                      @for (m of anio.materias.slice(0, 3); track m.id) {
+                        @if (m.docente) {
+                          <span class="docente-tag">{{ m.docente.apellidos }}</span>
+                        }
+                      }
+                      @if (anio.materias.length > 3) {
+                        <span class="docente-tag more">+{{ anio.materias.length - 3 }}</span>
+                      }
+                    </span>
+                  }
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <!-- Cuerpo del año: grid de materias -->
+              <div class="materias-section">
+
+                <div class="materias-toolbar">
+                  <span class="materias-toolbar-title">Materias del {{ anio.numeroAnio }}° año</span>
+                  <div class="materias-toolbar-actions">
+                    <button mat-stroked-button color="primary" (click)="agregarMateria(anio.id)">
+                      <mat-icon>add</mat-icon> Agregar materia
+                    </button>
+                    <button mat-icon-button color="warn"
+                      (click)="eliminarAnio(anio.id, anio.numeroAnio)"
+                      matTooltip="Eliminar este año y todas sus materias">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                @if (anio.materias.length === 0) {
+                  <div class="materias-empty">
+                    <mat-icon>menu_book</mat-icon>
+                    <span>Sin materias. Agregá la primera.</span>
+                  </div>
+                } @else {
+
+                  <div class="materias-grid">
+                    @for (m of anio.materias; track m.id) {
+                      <div class="materia-card">
+
+                        <div class="materia-card-header">
+                          <span class="materia-nombre">{{ m.nombre }}</span>
+                          <div class="materia-acciones">
+                            <button mat-icon-button (click)="editarMateria(m)" matTooltip="Editar">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn"
+                              (click)="eliminarMateria(m.id, m.nombre)" matTooltip="Eliminar">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        </div>
+
+                        @if (m.descripcion) {
+                          <p class="materia-descripcion">{{ m.descripcion }}</p>
+                        }
+
+                        <!-- Docente -->
+                        @if (m.docente) {
+                          <div class="materia-docente">
+                            <div class="docente-avatar">
+                              {{ m.docente.nombres[0] }}{{ m.docente.apellidos[0] }}
+                            </div>
+                            <div class="docente-datos">
+                              <span class="docente-nombre">
+                                {{ m.docente.nombres }} {{ m.docente.apellidos }}
+                              </span>
+                              <span class="docente-email">{{ m.docente.email }}</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <div class="docente-sin">
+                            <mat-icon>person_add</mat-icon>
+                            <span>Sin docente asignado</span>
+                          </div>
+                        }
+
+                        <!-- Horario -->
+                        @if (m.diaSemana || m.horaInicio || m.aula) {
+                          <div class="materia-horario">
+                            @if (m.diaSemana) {
+                              <span class="horario-chip">
+                                <mat-icon>event</mat-icon>
+                                {{ diaSemanaLabel(m.diaSemana) }}
+                              </span>
+                            }
+                            @if (m.horaInicio && m.horaFin) {
+                              <span class="horario-chip">
+                                <mat-icon>schedule</mat-icon>
+                                {{ m.horaInicio }} - {{ m.horaFin }}
+                              </span>
+                            }
+                            @if (m.aula) {
+                              <span class="horario-chip">
+                                <mat-icon>door_front</mat-icon>
+                                Aula {{ m.aula }}
+                              </span>
+                            }
+                          </div>
+                        }
+
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

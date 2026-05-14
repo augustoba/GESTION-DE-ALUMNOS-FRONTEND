@@ -51,7 +51,9 @@ export class LoginComponent {
         const { rol, status } = res.data;
         if (rol === 'ADMIN') {
           this.router.navigate(['/admin/lista']);
-        } else if (status) {          // truthy: true o 1
+        } else if (rol === 'DOCENTE') {
+          this.router.navigate(['/docente/portal']);
+        } else if (status) {
           this.router.navigate(['/dashboard']);
         } else {
           this.router.navigate(['/preinscripcion']);

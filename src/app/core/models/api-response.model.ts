@@ -93,3 +93,72 @@ export interface PageResponse<T> {
   number: number;
   size: number;
 }
+
+// ── Carreras admin ────────────────────────────────────────────────
+
+export interface DocenteResumen {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  email: string;
+}
+
+export interface MateriaResponse {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  diaSemana: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
+  aula: string | null;
+  docente: DocenteResumen | null;
+}
+
+export interface AnioCarreraResponse {
+  id: number;
+  numeroAnio: number;
+  materias: MateriaResponse[];
+}
+
+export interface MateriaDetalleDocente {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  carreraNombre: string | null;
+  numeroAnio: number;
+  diaSemana: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
+  aula: string | null;
+}
+
+export interface DocenteResponse {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  dni: string;
+  email: string;
+  telefono: string | null;
+  activo: boolean;
+}
+
+export interface CarreraDetalle {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  activa: boolean;
+  cupoMaximo: number;
+  anios: AnioCarreraResponse[];
+}
+
+// ── Docente portal ────────────────────────────────────────────────
+
+export interface AlumnoPortal {
+  id: number;
+  nombre: string;
+  apellido: string;
+  dni: string;
+  email: string;
+  telefono: string | null;
+  carreraNombre: string | null;
+}
