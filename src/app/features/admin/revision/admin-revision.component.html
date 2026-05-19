@@ -47,7 +47,7 @@
       <button mat-icon-button (click)="volver()" class="back-btn" title="Volver">
         <mat-icon>arrow_back</mat-icon>
       </button>
-      <span class="toolbar-title">Revisión de documentos</span>
+      <span class="toolbar-title">Revisión de preinscripción</span>
       @if (preinscripcion()) {
         <span class="toolbar-sub">#{{ preinscripcion()!.id }}</span>
       }
@@ -56,7 +56,6 @@
 
     <div class="content-area">
 
-      <!-- Loading -->
       @if (loading()) {
         <div class="loading-center">
           <mat-spinner diameter="48" />
@@ -66,166 +65,146 @@
       @else if (preinscripcion(); as pre) {
 
         <!-- ── Datos del alumno ───────────────────────── -->
-        <mat-card class="alumno-card">
-          <mat-card-content class="alumno-content">
+        <mat-card class="section-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>person</mat-icon>
+            <mat-card-title>{{ pre.apellido }}, {{ pre.nombre }}</mat-card-title>
+            <mat-card-subtitle>{{ pre.carrera ?? 'Sin carrera seleccionada' }}</mat-card-subtitle>
+          </mat-card-header>
 
-            <!-- Foto carnet -->
-            <div class="alumno-foto-wrap">
-              @if (fotoUrl()) {
-                <img [src]="fotoUrl()" alt="Foto carnet" class="alumno-foto" />
-              } @else {
-                <div class="alumno-foto-placeholder">
-                  <mat-icon>person</mat-icon>
-                </div>
-              }
+          <mat-card-content>
+            <div class="datos-grid">
+
+              <div class="dato">
+                <span class="dato-label">DNI</span>
+                <span class="dato-valor">{{ pre.dni }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Fecha de nacimiento</span>
+                <span class="dato-valor">{{ pre.fechaNacimiento | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Lugar de nacimiento</span>
+                <span class="dato-valor">{{ pre.lugarNacimiento || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Nacionalidad</span>
+                <span class="dato-valor">{{ pre.nacionalidad || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Domicilio</span>
+                <span class="dato-valor">{{ pre.direccion || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Localidad</span>
+                <span class="dato-valor">{{ pre.localidad || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Teléfono</span>
+                <span class="dato-valor">{{ pre.telefono || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Email</span>
+                <span class="dato-valor">{{ pre.email }}</span>
+              </div>
+
             </div>
 
-            <!-- Info principal -->
-            <div class="alumno-info">
-              <div class="alumno-nombre">{{ pre.nombre }} {{ pre.apellido }}</div>
-              <div class="alumno-carrera">{{ pre.carrera ?? 'Sin carrera' }}</div>
+            <mat-divider class="inner-divider" />
 
-              <div class="alumno-datos-grid">
-                <div class="dato">
-                  <mat-icon>badge</mat-icon>
-                  <div>
-                    <div class="dato-label">DNI</div>
-                    <div class="dato-valor">{{ pre.dni }}</div>
-                  </div>
+            <div class="datos-grid">
+              <div class="dato">
+                <span class="dato-label">Egresado de</span>
+                <span class="dato-valor">{{ pre.egresadoDe || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Título de</span>
+                <span class="dato-valor">{{ pre.tituloDe || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">¿Debe materias?</span>
+                <span class="dato-valor">{{ pre.debeMaterias ? 'Sí' : 'No' }}</span>
+              </div>
+              @if (pre.debeMaterias && pre.materiasAdeudadas) {
+                <div class="dato dato-full">
+                  <span class="dato-label">Materias adeudadas</span>
+                  <span class="dato-valor">{{ pre.materiasAdeudadas }}</span>
                 </div>
-                <div class="dato">
-                  <mat-icon>email</mat-icon>
-                  <div>
-                    <div class="dato-label">Email</div>
-                    <div class="dato-valor">{{ pre.email }}</div>
-                  </div>
+              }
+              @if (pre.afeccionEspecifica) {
+                <div class="dato dato-full">
+                  <span class="dato-label">Afección específica</span>
+                  <span class="dato-valor">{{ pre.afeccionEspecifica }}</span>
                 </div>
-                @if (pre.telefono) {
-                  <div class="dato">
-                    <mat-icon>phone</mat-icon>
-                    <div>
-                      <div class="dato-label">Teléfono</div>
-                      <div class="dato-valor">{{ pre.telefono }}</div>
-                    </div>
-                  </div>
-                }
-                <div class="dato">
-                  <mat-icon>calendar_today</mat-icon>
-                  <div>
-                    <div class="dato-label">Inscripto el</div>
-                    <div class="dato-valor">{{ pre.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</div>
-                  </div>
-                </div>
+              }
+              <div class="dato">
+                <span class="dato-label">Grupo sanguíneo</span>
+                <span class="dato-valor">{{ pre.grupoSanguineo || '—' }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Inscripto el</span>
+                <span class="dato-valor">{{ pre.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
             </div>
 
           </mat-card-content>
         </mat-card>
 
-        <!-- ── Documentos obligatorios ───────────────── -->
-        <h3 class="section-title">Documentos a revisar</h3>
+        <!-- ── Requisitos presenciales ───────────────── -->
+        <mat-card class="section-card requisitos-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>checklist</mat-icon>
+            <mat-card-title>Documentación presentada</mat-card-title>
+            <mat-card-subtitle>
+              Marcá los documentos físicos que el alumno trajo. Sección "NO LLENAR" del formulario.
+            </mat-card-subtitle>
+          </mat-card-header>
 
-        @for (doc of docsObligatorios(); track doc.id) {
-          <mat-card class="doc-card">
-            <mat-card-content class="doc-row">
-
-              <div class="doc-icon-wrap">
-                <mat-icon>{{ doc.contentType.includes('pdf') ? 'picture_as_pdf' : 'image' }}</mat-icon>
-              </div>
-
-              <div class="doc-info">
-                <div class="doc-tipo">{{ labelTipo(doc.tipo) }}</div>
-                <div class="doc-nombre">{{ doc.nombreArchivo }}</div>
-                <span [class]="'estado-badge-sm estado-' + doc.estado.toLowerCase()">
-                  {{ estadoLabelDoc(doc.estado) }}
-                </span>
-              </div>
-
-              <button mat-icon-button class="ver-btn" (click)="verDocumento(doc)" title="Ver documento">
-                <mat-icon>visibility</mat-icon>
-              </button>
-
-              <mat-button-toggle-group
-                class="decision-toggle"
-                [value]="getDecision(doc.id)"
-                (change)="setDecision(doc.id, $event.value)">
-                <mat-button-toggle value="VALIDADO" class="toggle-validar">
-                  <mat-icon>check_circle</mat-icon>
-                  Validar
-                </mat-button-toggle>
-                <mat-button-toggle value="RESUBIR" class="toggle-rechazar">
-                  <mat-icon>cancel</mat-icon>
-                  Rechazar
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-
-            </mat-card-content>
-          </mat-card>
-        }
-
-        <!-- ── Comprobante de pago (también decidible) ── -->
-        @if (docsOtros().length > 0) {
-          <h3 class="section-title">Comprobante de pago</h3>
-
-          @for (doc of docsOtros(); track doc.id) {
-            <mat-card class="doc-card">
-              <mat-card-content class="doc-row">
-
-                <div class="doc-icon-wrap">
-                  <mat-icon>{{ doc.contentType.includes('pdf') ? 'picture_as_pdf' : 'image' }}</mat-icon>
-                </div>
-
-                <div class="doc-info">
-                  <div class="doc-tipo">{{ labelTipo(doc.tipo) }}</div>
-                  <div class="doc-nombre">{{ doc.nombreArchivo }}</div>
-                  <span [class]="'estado-badge-sm estado-' + doc.estado.toLowerCase()">
-                    {{ estadoLabelDoc(doc.estado) }}
-                  </span>
-                </div>
-
-                <button mat-icon-button class="ver-btn" (click)="verDocumento(doc)" title="Ver documento">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-
-                <mat-button-toggle-group
-                  class="decision-toggle"
-                  [value]="getDecision(doc.id)"
-                  (change)="setDecision(doc.id, $event.value)">
-                  <mat-button-toggle value="VALIDADO" class="toggle-validar">
-                    <mat-icon>check_circle</mat-icon>
-                    Validar
-                  </mat-button-toggle>
-                  <mat-button-toggle value="RESUBIR" class="toggle-rechazar">
-                    <mat-icon>cancel</mat-icon>
-                    Rechazar
-                  </mat-button-toggle>
-                </mat-button-toggle-group>
-
-              </mat-card-content>
-            </mat-card>
-          }
-        }
+          <mat-card-content>
+            <form [formGroup]="requisitosForm" class="requisitos-form">
+              <mat-checkbox formControlName="tituloSecundario" color="primary">
+                Título Secundario
+              </mat-checkbox>
+              <mat-checkbox formControlName="constanciaTituloTramite" color="primary">
+                Constancia de Título en Trámite
+              </mat-checkbox>
+              <mat-checkbox formControlName="dni" color="primary">
+                DNI
+              </mat-checkbox>
+              <mat-checkbox formControlName="foto" color="primary">
+                Foto carnet
+              </mat-checkbox>
+              <mat-checkbox formControlName="actaNacimiento" color="primary">
+                Acta de Nacimiento
+              </mat-checkbox>
+              <mat-checkbox formControlName="psicofisico" color="primary">
+                Psicofísico
+              </mat-checkbox>
+              <mat-checkbox formControlName="buenaConducta" color="primary">
+                Certificado de Buena Conducta
+              </mat-checkbox>
+            </form>
+          </mat-card-content>
+        </mat-card>
 
         <!-- ── Acción final ───────────────────────────── -->
         <div class="actions-bar">
-          <p class="actions-hint" [class.hint-ok]="todasDecididas()">
-            @if (todasDecididas()) {
+          @if (pre.estado === 'APROBADA') {
+            <div class="estado-aprobado">
               <mat-icon>check_circle</mat-icon>
-              Todos los documentos tienen una decisión asignada.
-            } @else {
-              <mat-icon>info</mat-icon>
-              Asigná una decisión a cada documento para poder confirmar.
-            }
-          </p>
-          <button
-            mat-flat-button
-            color="primary"
-            class="btn-confirmar"
-            [disabled]="!todasDecididas() || guardando()"
-            (click)="confirmar()">
-            <mat-icon>{{ guardando() ? 'hourglass_empty' : 'send' }}</mat-icon>
-            {{ guardando() ? 'Guardando...' : 'Aceptar revisión' }}
-          </button>
+              Este alumno ya fue dado de alta.
+            </div>
+          } @else {
+            <button
+              mat-flat-button
+              color="primary"
+              class="btn-confirmar"
+              [disabled]="aprobando()"
+              (click)="aprobar()">
+              <mat-icon>how_to_reg</mat-icon>
+              {{ aprobando() ? 'Procesando...' : 'Dar de alta al alumno' }}
+            </button>
+          }
         </div>
 
       }

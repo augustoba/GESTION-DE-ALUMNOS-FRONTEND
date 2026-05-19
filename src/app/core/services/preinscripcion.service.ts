@@ -3,12 +3,32 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, Carrera, DocumentoResumen, PerfilResponse } from '../models/api-response.model';
 
+export interface PreinscripcionRequest {
+  nombres: string;
+  apellidos: string;
+  dni: string;
+  fechaNacimiento: string;
+  lugarNacimiento: string;
+  nacionalidad: string;
+  domicilio: string;
+  localidad: string;
+  telefono: string;
+  email: string;
+  egresadoDe: string;
+  tituloDe: string;
+  debeMaterias: boolean;
+  materiasAdeudadas: string | null;
+  afeccionEspecifica: string | null;
+  grupoSanguineo: string;
+  carreraId: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PreinscripcionService {
   private http = inject(HttpClient);
 
-  crear(formData: FormData): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>('/api/preinscripciones', formData);
+  crear(request: PreinscripcionRequest): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>('/api/preinscripciones', request);
   }
 
   getCarreras(): Observable<ApiResponse<Carrera[]>> {

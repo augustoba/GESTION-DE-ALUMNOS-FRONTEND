@@ -6,7 +6,7 @@
           <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="logo" />
           <div>
             <mat-card-title>Formulario de Preinscripción</mat-card-title>
-            <mat-card-subtitle>Completá todos los campos para iniciar tu inscripción</mat-card-subtitle>
+            <mat-card-subtitle>Instituto de Enseñanza Superior Alfredo Coviello</mat-card-subtitle>
           </div>
         </div>
         <div class="header-user">
@@ -19,51 +19,68 @@
     </mat-card-header>
 
     <mat-card-content>
+
       @if (success()) {
         <div class="success-container">
           <mat-icon class="success-icon">check_circle</mat-icon>
-          <h2>¡Preinscripción enviada!</h2>
+          <h2>¡Formulario enviado!</h2>
+          @if (numeroFormulario()) {
+            <div class="numero-formulario">
+              N° de formulario: <strong>{{ numeroFormulario() }}</strong>
+            </div>
+          }
           <p>
-            Tu solicitud fue recibida correctamente. El equipo de administración revisará
-            tu comprobante de pago y la documentación adjunta. Te notificaremos por email.
+            Te enviamos el formulario en formato PDF a tu email.
+            <strong>Imprimilo y presentalo</strong> el día de tu inscripción presencial
+            junto con la documentación requerida:
           </p>
+          <ul class="doc-lista">
+            <li>DNI (original y copia — frente y dorso)</li>
+            <li>Título secundario (original y copia)</li>
+            <li>Foto carnet 4×4</li>
+            <li>Acta de nacimiento</li>
+            <li>Certificado de buena conducta</li>
+            <li>Psicofísico</li>
+          </ul>
         </div>
+
       } @else if (loadingDatos()) {
         <div class="loading-page">
           <mat-spinner diameter="40" />
           <p>Cargando tu información...</p>
         </div>
+
       } @else {
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-          <!-- Sección 1: Datos personales -->
+          <!-- ── Sección 1: Datos personales ── -->
           <h3 class="section-title">
             <mat-icon>person</mat-icon> Datos personales
           </h3>
           <p class="section-hint">
             <mat-icon class="hint-icon">lock</mat-icon>
-            Los campos bloqueados se completaron con los datos de tu registro y no pueden modificarse.
+            Nombre, apellido, DNI y email vienen de tu registro y no pueden modificarse.
           </p>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro" matTooltipPosition="above">
-              <mat-label>Nombre</mat-label>
-              <input matInput formControlName="nombre" />
+              matTooltip="Completado con los datos de tu registro">
+              <mat-label>Apellidos</mat-label>
+              <input matInput formControlName="apellidos" />
               <mat-icon matSuffix class="lock-icon">lock</mat-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro" matTooltipPosition="above">
-              <mat-label>Apellido</mat-label>
-              <input matInput formControlName="apellido" />
+              matTooltip="Completado con los datos de tu registro">
+              <mat-label>Nombres</mat-label>
+              <input matInput formControlName="nombres" />
               <mat-icon matSuffix class="lock-icon">lock</mat-icon>
             </mat-form-field>
           </div>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro" matTooltipPosition="above">
+              matTooltip="Completado con los datos de tu registro">
               <mat-label>DNI</mat-label>
               <input matInput formControlName="dni" />
               <mat-icon matSuffix class="lock-icon">lock</mat-icon>
@@ -79,163 +96,108 @@
           </div>
 
           <div class="form-row">
-            <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro" matTooltipPosition="above">
-              <mat-label>Email</mat-label>
-              <input matInput formControlName="email" />
-              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Lugar de nacimiento</mat-label>
+              <input matInput formControlName="lugarNacimiento" />
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="flex-1">
-              <mat-label>Teléfono</mat-label>
-              <input matInput formControlName="telefono" type="tel" />
-              @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
-                <mat-error>Requerido</mat-error>
-              }
+              <mat-label>Nacionalidad</mat-label>
+              <input matInput formControlName="nacionalidad" />
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Dirección (calle y número)</mat-label>
-            <input matInput formControlName="direccion" />
-            @if (form.get('direccion')?.invalid && form.get('direccion')?.touched) {
-              <mat-error>Requerido</mat-error>
-            }
-          </mat-form-field>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Domicilio (calle y número)</mat-label>
+              <input matInput formControlName="domicilio" />
+            </mat-form-field>
 
-          <!-- Sección 2: Carrera -->
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Localidad</mat-label>
+              <input matInput formControlName="localidad" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Teléfono</mat-label>
+              <input matInput formControlName="telefono" type="tel" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="flex-1"
+              matTooltip="Completado con los datos de tu registro">
+              <mat-label>Correo electrónico</mat-label>
+              <input matInput formControlName="email" />
+              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- ── Sección 2: Carrera ── -->
           <mat-divider class="section-divider" />
           <h3 class="section-title">
             <mat-icon>school</mat-icon> Carrera
           </h3>
 
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Seleccioná tu carrera</mat-label>
+            <mat-label>Seleccioná tu carrera (opcional)</mat-label>
             <mat-select formControlName="carreraId">
+              <mat-option [value]="null">— Sin seleccionar —</mat-option>
               @for (carrera of carreras(); track carrera.id) {
                 <mat-option [value]="carrera.id">{{ carrera.nombre }}</mat-option>
               }
             </mat-select>
-            @if (form.get('carreraId')?.invalid && form.get('carreraId')?.touched) {
-              <mat-error>Seleccioná una carrera</mat-error>
-            }
           </mat-form-field>
 
-          <!-- Sección 3: Comprobante de pago -->
+          <!-- ── Sección 3: Datos educativos ── -->
           <mat-divider class="section-divider" />
           <h3 class="section-title">
-            <mat-icon>receipt_long</mat-icon> Comprobante de pago
+            <mat-icon>menu_book</mat-icon> Estudios secundarios
           </h3>
-          <p class="section-hint">
-            Subí el comprobante de tu transferencia bancaria. Formatos aceptados: JPG, PNG, PDF.
-          </p>
 
-          <div class="file-row">
-            <button mat-stroked-button type="button" (click)="comprobanteInput.click()">
-              <mat-icon>upload_file</mat-icon> Subir comprobante
-            </button>
-            <span class="file-name" [class.selected]="files['comprobante'].file">
-              {{ files['comprobante'].file?.name || 'Ningún archivo seleccionado' }}
-            </span>
-            <input
-              #comprobanteInput
-              type="file"
-              hidden
-              accept=".jpg,.jpeg,.png,.pdf"
-              (change)="onFileChange($event, 'comprobante')"
-            />
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Egresado de (institución)</mat-label>
+              <input matInput formControlName="egresadoDe" placeholder="Ej: Colegio Nacional N°1" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Título de</mat-label>
+              <input matInput formControlName="tituloDe" placeholder="Ej: Bachiller con orientación en Informática" />
+            </mat-form-field>
           </div>
-          @if (files['comprobante'].error) {
-            <div class="file-error">{{ files['comprobante'].error }}</div>
+
+          <div class="debe-materias-row">
+            <mat-checkbox formControlName="debeMaterias" color="primary">
+              ¿Debe materias del secundario?
+            </mat-checkbox>
+          </div>
+
+          @if (debeMateriasValue) {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Indicar las materias adeudadas</mat-label>
+              <textarea matInput formControlName="materiasAdeudadas" rows="3"
+                placeholder="Ej: Matemáticas, Física, Historia"></textarea>
+            </mat-form-field>
           }
 
-          <!-- Sección 4: Documentación -->
+          <!-- ── Sección 4: Salud ── -->
           <mat-divider class="section-divider" />
           <h3 class="section-title">
-            <mat-icon>folder_open</mat-icon> Documentación obligatoria
+            <mat-icon>favorite</mat-icon> Información de salud
           </h3>
-          <p class="section-hint">
-            Subí los siguientes documentos. Imágenes (DNI, foto carnet): JPG o PNG.
-            Título secundario: PDF.
-          </p>
 
-          <div class="file-row">
-            <button mat-stroked-button type="button" (click)="dniFrenteInput.click()">
-              <mat-icon>badge</mat-icon> DNI frente
-            </button>
-            <span class="file-name" [class.selected]="files['dniFente'].file">
-              {{ files['dniFente'].file?.name || 'Ningún archivo seleccionado' }}
-            </span>
-            <input
-              #dniFrenteInput
-              type="file"
-              hidden
-              accept=".jpg,.jpeg,.png"
-              (change)="onFileChange($event, 'dniFente')"
-            />
-          </div>
-          @if (files['dniFente'].error) {
-            <div class="file-error">{{ files['dniFente'].error }}</div>
-          }
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Si padece alguna afección específica, indiquela</mat-label>
+            <textarea matInput formControlName="afeccionEspecifica" rows="2"></textarea>
+          </mat-form-field>
 
-          <div class="file-row">
-            <button mat-stroked-button type="button" (click)="dniDorsoInput.click()">
-              <mat-icon>badge</mat-icon> DNI dorso
-            </button>
-            <span class="file-name" [class.selected]="files['dniDorso'].file">
-              {{ files['dniDorso'].file?.name || 'Ningún archivo seleccionado' }}
-            </span>
-            <input
-              #dniDorsoInput
-              type="file"
-              hidden
-              accept=".jpg,.jpeg,.png"
-              (change)="onFileChange($event, 'dniDorso')"
-            />
-          </div>
-          @if (files['dniDorso'].error) {
-            <div class="file-error">{{ files['dniDorso'].error }}</div>
-          }
+          <mat-form-field appearance="outline" style="width: 240px;">
+            <mat-label>Grupo sanguíneo</mat-label>
+            <input matInput formControlName="grupoSanguineo" placeholder="Ej: A+" />
+          </mat-form-field>
 
-          <div class="file-row">
-            <button mat-stroked-button type="button" (click)="tituloInput.click()">
-              <mat-icon>description</mat-icon> Título secundario (PDF)
-            </button>
-            <span class="file-name" [class.selected]="files['titulo'].file">
-              {{ files['titulo'].file?.name || 'Ningún archivo seleccionado' }}
-            </span>
-            <input
-              #tituloInput
-              type="file"
-              hidden
-              accept=".pdf"
-              (change)="onFileChange($event, 'titulo')"
-            />
-          </div>
-          @if (files['titulo'].error) {
-            <div class="file-error">{{ files['titulo'].error }}</div>
-          }
-
-          <div class="file-row">
-            <button mat-stroked-button type="button" (click)="fotoCarnetInput.click()">
-              <mat-icon>portrait</mat-icon> Foto carnet (fondo blanco)
-            </button>
-            <span class="file-name" [class.selected]="files['fotoCarnet'].file">
-              {{ files['fotoCarnet'].file?.name || 'Ningún archivo seleccionado' }}
-            </span>
-            <input
-              #fotoCarnetInput
-              type="file"
-              hidden
-              accept=".jpg,.jpeg,.png"
-              (change)="onFileChange($event, 'fotoCarnet')"
-            />
-          </div>
-          @if (files['fotoCarnet'].error) {
-            <div class="file-error">{{ files['fotoCarnet'].error }}</div>
-          }
-
-          <!-- Error general -->
+          <!-- ── Error general ── -->
           @if (error()) {
             <div class="error-banner">
               <mat-icon>error</mat-icon>
@@ -243,25 +205,68 @@
             </div>
           }
 
-          <!-- Botón submit -->
+          <!-- ── Sección 5: Requisitos (NO LLENAR — solo admin) ── -->
+          <mat-divider class="section-divider" />
+          <div class="requisitos-bloque">
+            <div class="requisitos-header">
+              <span class="requisitos-titulo">Requisitos</span>
+              <span class="requisitos-nollenar">NO LLENAR — Uso exclusivo de administración</span>
+            </div>
+            <div class="requisitos-grid">
+              <div class="req-item">- Título Secundario:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- Constancia de Título en Trámite:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- DNI:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- Foto:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- Acta de Nacimiento:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- Psicofísico:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+              <div class="req-item">- Certificado de Buena Conducta:<span class="si-no">Si <span class="box">&#160;</span> No <span class="box">&#160;</span></span></div>
+            </div>
+          </div>
+
+          <!-- ── Declaración jurada ── -->
+          <mat-divider class="section-divider" />
+          <div class="declaracion-bloque">
+            <p class="declaracion-texto">
+              Con carácter de <strong>DECLARACION JURADA</strong>, suscribo que los datos consignados
+              en la presente, son exactos y completos. Después de haber tomado conocimiento de las
+              condiciones de ingreso, cursado, correlatividades,
+              <strong>ACEPTO EL COMPROMISO</strong> de cumplir las disposiciones del reglamento de
+              <strong>INSTITUCION</strong>.
+            </p>
+            <p class="quedo-notificado">QUEDO/A NOTIFICADO</p>
+            <div class="firma-row">
+              <span class="firma-linea">Firma: .................................</span>
+            </div>
+          </div>
+
+          <!-- ── Aviso y botón ── -->
+          <div class="aviso-impresion">
+            <mat-icon>print</mat-icon>
+            Al enviar este formulario recibirás un <strong>PDF por email</strong> para imprimir
+            y presentar el día de tu inscripción presencial.
+          </div>
+
           <div class="submit-row">
             <button
               mat-raised-button
               color="primary"
               type="submit"
               class="submit-btn"
-              [disabled]="loading()"
-            >
+              [disabled]="loading()">
               @if (loading()) {
                 <mat-spinner diameter="20" />
               } @else {
-                Enviar preinscripción
+                <ng-container>
+                  <mat-icon>send</mat-icon>
+                  Enviar formulario
+                </ng-container>
               }
             </button>
           </div>
 
         </form>
       }
+
     </mat-card-content>
   </mat-card>
 </div>

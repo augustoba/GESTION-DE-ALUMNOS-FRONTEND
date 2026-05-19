@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   ApiResponse, Preinscripcion, PreinscripcionDetalle,
-  PageResponse, EstadoDocumento,
+  PageResponse, EstadoDocumento, AprobarRequest,
   Carrera, CarreraDetalle, AnioCarreraResponse, MateriaResponse, DocenteResumen,
   DocenteResponse, MateriaDetalleDocente
 } from '../models/api-response.model';
@@ -68,6 +68,12 @@ export class AdminService {
   confirmarRevision(id: number, request: RevisionRequest): Observable<ApiResponse<Preinscripcion>> {
     return this.http.put<ApiResponse<Preinscripcion>>(
       `/api/preinscripciones/${id}/confirmar-revision`, request
+    );
+  }
+
+  aprobar(id: number, requisitos: AprobarRequest): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.put<ApiResponse<Preinscripcion>>(
+      `/api/preinscripciones/${id}/aprobar`, requisitos
     );
   }
 

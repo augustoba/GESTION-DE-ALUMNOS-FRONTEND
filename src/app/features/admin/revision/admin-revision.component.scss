@@ -146,93 +146,36 @@
   max-width: 860px;
 }
 
-/* ── Alumno card ────────────────────────────────────── */
-.alumno-card {
-  margin-bottom: 28px;
+/* ── Data cards ─────────────────────────────────────── */
+.section-card {
+  margin-bottom: 20px;
   border-top: 4px solid var(--color-primary) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
-.alumno-content {
-  display: flex;
-  gap: 24px;
-  padding: 20px !important;
-  align-items: flex-start;
+.requisitos-card {
+  border-top-color: #16A34A !important;
 }
 
-/* Foto carnet */
-.alumno-foto-wrap {
-  flex-shrink: 0;
-}
+.inner-divider { margin: 16px 0; }
 
-.alumno-foto {
-  width: 110px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 2px solid var(--color-border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-
-.alumno-foto-placeholder {
-  width: 110px;
-  height: 140px;
-  border-radius: 8px;
-  border: 2px dashed var(--color-border);
-  background: var(--color-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: var(--color-text-muted);
-    opacity: 0.4;
-  }
-}
-
-.alumno-info { flex: 1; }
-
-.alumno-nombre {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.alumno-carrera {
-  font-size: 0.85rem;
-  color: var(--color-primary);
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
-.alumno-datos-grid {
+.datos-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
+  padding-top: 8px;
 }
 
 .dato {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 20px 10px 0;
+  flex-direction: column;
+  padding: 8px 20px 8px 0;
   width: 50%;
-  min-width: 200px;
-
-  mat-icon {
-    color: var(--color-primary);
-    margin-top: 1px;
-    flex-shrink: 0;
-    font-size: 18px;
-    height: 18px;
-    width: 18px;
-  }
+  min-width: 180px;
 }
+
+.dato-full { width: 100%; }
 
 .dato-label {
   font-size: 0.68rem;
@@ -247,6 +190,26 @@
   font-weight: 600;
   color: var(--color-text);
   font-size: 0.9rem;
+}
+
+/* ── Requisitos form ────────────────────────────────── */
+.requisitos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ── Estado aprobado ────────────────────────────────── */
+.estado-aprobado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #15803D;
+  font-weight: 700;
+  font-size: 0.95rem;
+
+  mat-icon { color: #16A34A; }
 }
 
 /* ── Section title ──────────────────────────────────── */
