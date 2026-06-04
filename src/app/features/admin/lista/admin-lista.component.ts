@@ -77,6 +77,7 @@ export class AdminListaComponent implements OnInit {
 
   estadoLabel(e: EstadoPreinscripcion): string {
     const m: Record<EstadoPreinscripcion, string> = {
+      ENVIADA:              'Enviada',
       PENDIENTE_PAGO:       'Pend. pago',
       PAGO_VALIDADO:        'Pago validado',
       DOCUMENTOS_COMPLETOS: 'Docs completos',
@@ -88,6 +89,7 @@ export class AdminListaComponent implements OnInit {
 
   estadoClass(e: EstadoPreinscripcion): string {
     const m: Record<EstadoPreinscripcion, string> = {
+      ENVIADA:              'chip-info',
       PENDIENTE_PAGO:       'chip-warn',
       PAGO_VALIDADO:        'chip-info',
       DOCUMENTOS_COMPLETOS: 'chip-primary',

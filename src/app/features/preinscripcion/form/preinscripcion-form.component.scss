@@ -221,10 +221,142 @@
   letter-spacing: 0.03em;
 }
 
+.debe-materias-row {
+  margin: 4px 0 16px;
+}
+
+.aviso-impresion {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  margin: 20px 0 0;
+  line-height: 1.6;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+/* ── Requisitos NO LLENAR ───────────────────────────── */
+.requisitos-bloque {
+  border: 1.5px solid #CBD5E1;
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin: 16px 0;
+  background: #F8FAFC;
+}
+
+.requisitos-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.requisitos-titulo {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.requisitos-nollenar {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #DC2626;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #FEE2E2;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+}
+
+.requisitos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  gap: 8px;
+}
+
+.si-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.box {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #94A3B8;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* ── Declaración jurada ─────────────────────────────── */
+.declaracion-bloque {
+  border: 1.5px solid #CBD5E1;
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin: 16px 0;
+  background: #F8FAFC;
+}
+
+.declaracion-texto {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.75;
+  margin: 0 0 16px;
+  text-align: justify;
+}
+
+.quedo-notificado {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 20px;
+}
+
+.firma-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.firma-linea {
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
 /* ── Success state ──────────────────────────────────── */
 .success-container {
   text-align: center;
-  padding: 60px 24px;
+  padding: 48px 24px;
 
   .success-icon {
     font-size: 72px;
@@ -248,11 +380,32 @@
     letter-spacing: -0.03em;
   }
 
+  .numero-formulario {
+    display: inline-block;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+    border-radius: var(--radius-sm);
+    padding: 8px 20px;
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+  }
+
   p {
     color: var(--color-text-muted);
     max-width: 500px;
-    margin: 0 auto;
+    margin: 0 auto 16px;
     line-height: 1.75;
     font-size: 0.95rem;
+  }
+
+  .doc-lista {
+    display: inline-block;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 2;
+    margin: 0 auto;
+    padding-left: 20px;
   }
 }

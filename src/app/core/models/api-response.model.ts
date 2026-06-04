@@ -37,7 +37,7 @@ export interface PerfilResponse {
 export type EstadoDocumento = 'PENDIENTE' | 'VALIDADO' | 'RESUBIR';
 export type TipoDocumento = 'DNI_FRENTE' | 'DNI_DORSO' | 'TITULO' | 'FOTO_CARNET' | 'COMPROBANTE_PAGO';
 export type EstadoPreinscripcion =
-  'PENDIENTE_PAGO' | 'PAGO_VALIDADO' | 'DOCUMENTOS_COMPLETOS' | 'APROBADA' | 'EXPIRADA';
+  'ENVIADA' | 'PENDIENTE_PAGO' | 'PAGO_VALIDADO' | 'DOCUMENTOS_COMPLETOS' | 'APROBADA' | 'EXPIRADA';
 
 export interface DocumentoResumen {
   id: number;
@@ -61,9 +61,17 @@ export interface Preinscripcion {
   email: string;
   telefono: string | null;
   direccion: string | null;
+  localidad: string | null;
   fechaNacimiento: string | null;
+  lugarNacimiento: string | null;
+  nacionalidad: string | null;
+  egresadoDe: string | null;
+  tituloDe: string | null;
+  debeMaterias: boolean | null;
+  materiasAdeudadas: string | null;
+  afeccionEspecifica: string | null;
+  grupoSanguineo: string | null;
   carrera: CarreraRef | null;
-  pagoValidado: boolean | null;
   documentosCompletos: boolean | null;
   fechaCreacion: string;
   estado: EstadoPreinscripcion;
@@ -77,13 +85,38 @@ export interface PreinscripcionDetalle {
   email: string;
   telefono: string | null;
   direccion: string | null;
+  localidad: string | null;
   fechaNacimiento: string | null;
+  lugarNacimiento: string | null;
+  nacionalidad: string | null;
+  egresadoDe: string | null;
+  tituloDe: string | null;
+  debeMaterias: boolean | null;
+  materiasAdeudadas: string | null;
+  afeccionEspecifica: string | null;
+  grupoSanguineo: string | null;
   carrera: string | null;
   fechaCreacion: string;
   estado: EstadoPreinscripcion;
-  pagoValidado: boolean | null;
   documentosCompletos: boolean | null;
+  reqTituloSecundario: boolean | null;
+  reqConstanciaTituloTramite: boolean | null;
+  reqDni: boolean | null;
+  reqFoto: boolean | null;
+  reqActaNacimiento: boolean | null;
+  reqPsicofisico: boolean | null;
+  reqBuenaConducta: boolean | null;
   documentos: DocumentoResumen[];
+}
+
+export interface AprobarRequest {
+  tituloSecundario: boolean;
+  constanciaTituloTramite: boolean;
+  dni: boolean;
+  foto: boolean;
+  actaNacimiento: boolean;
+  psicofisico: boolean;
+  buenaConducta: boolean;
 }
 
 export interface PageResponse<T> {
