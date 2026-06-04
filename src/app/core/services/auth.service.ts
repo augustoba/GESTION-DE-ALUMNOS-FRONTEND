@@ -31,6 +31,10 @@ export class AuthService {
     return this.http.post<ApiResponse>('/auth/registro', data);
   }
 
+  recuperarPassword(email: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>('/auth/recuperar-password', { email });
+  }
+
   logout(): void {
     [this.TOKEN_KEY, this.ROL_KEY, this.USERNAME_KEY].forEach(k =>
       localStorage.removeItem(k)

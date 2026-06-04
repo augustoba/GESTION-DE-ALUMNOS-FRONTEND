@@ -33,9 +33,18 @@ export class LoginComponent {
   error = signal('');
   hidePassword = signal(true);
 
+  showForgotPassword = signal(false);
+  forgotLoading = signal(false);
+  forgotError = signal('');
+  forgotSuccess = signal('');
+
   form = this.fb.group({
     username: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required]
+  });
+
+  forgotForm = this.fb.group({
+    email: ['', [Validators.required, Validators.email]]
   });
 
   onSubmit(): void {
@@ -47,7 +56,6 @@ export class LoginComponent {
 
     this.authService.login(username!, password!).subscribe({
       next: (res) => {
-        console.log('[Login] respuesta backend:', res.data);
         const { rol, status } = res.data;
         if (rol === 'ADMIN') {
           this.router.navigate(['/admin/lista']);
@@ -65,5 +73,32 @@ export class LoginComponent {
       },
       complete: () => this.loading.set(false)
     });
+  }
+
+  onForgotPassword(): void {
+    if (this.forgotForm.invalid) return;
+    this.forgotLoading.set(true);
+    this.forgotError.set('');
+    this.forgotSuccess.set('');
+
+    const email = this.forgotForm.value.email!;
+
+    this.authService.recuperarPassword(email).subscribe({
+      next: (res) => {
+        this.forgotSuccess.set(res.mensaje);
+        this.forgotLoading.set(false);
+      },
+      error: (err) => {
+        this.forgotError.set(err.error?.mensaje || 'Error al recuperar la contraseña. Intentá de nuevo.');
+        this.forgotLoading.set(false);
+      }
+    });
+  }
+
+  volverAlLogin(): void {
+    this.showForgotPassword.set(false);
+    this.forgotForm.reset();
+    this.forgotError.set('');
+    this.forgotSuccess.set('');
   }
 }

@@ -80,6 +80,25 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Confirmar contraseña</mat-label>
+            <input
+              matInput
+              [type]="hideConfirmPassword() ? 'password' : 'text'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+            />
+            <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword.set(!hideConfirmPassword())">
+              <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (form.get('confirmPassword')?.hasError('required')) {
+              <mat-error>Debe confirmar la contraseña</mat-error>
+            }
+            @if (form.hasError('passwordsMismatch') && !form.get('confirmPassword')?.hasError('required')) {
+              <mat-error>Las contraseñas no coinciden</mat-error>
+            }
+          </mat-form-field>
+
           @if (error()) {
             <div class="error-banner">
               <mat-icon>error</mat-icon>
