@@ -2,31 +2,29 @@
   <mat-card class="form-card">
     <mat-card-header>
       <div class="header-content">
-        <div class="header-left">
-          <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="logo" />
-          <div>
-            <mat-card-title>Formulario de Preinscripción</mat-card-title>
-            <mat-card-subtitle>Instituto de Enseñanza Superior Alfredo Coviello</mat-card-subtitle>
-          </div>
-        </div>
-        <div class="header-user">
-          <span class="username-label">{{ username }}</span>
-          <button mat-stroked-button color="warn" (click)="logout()">
-            <mat-icon>logout</mat-icon> Salir
-          </button>
+        <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="logo" />
+        <div>
+          <mat-card-title>Formulario de Preinscripción</mat-card-title>
+          <mat-card-subtitle>Instituto de Enseñanza Superior Alfredo Coviello</mat-card-subtitle>
         </div>
       </div>
     </mat-card-header>
 
     <mat-card-content>
 
-      @if (success()) {
+      @if (preinscripcionCerrada()) {
+        <div class="cerrado-container">
+          <mat-icon class="cerrado-icon">lock</mat-icon>
+          <h2>Preinscripción cerrada</h2>
+          <p>El período de preinscripción no está habilitado en este momento.<br>Comunicate con la institución para más información.</p>
+        </div>
+      } @else if (success()) {
         <div class="success-container">
           <mat-icon class="success-icon">check_circle</mat-icon>
           <h2>¡Formulario enviado!</h2>
-          @if (numeroFormulario()) {
-            <div class="numero-formulario">
-              N° de formulario: <strong>{{ numeroFormulario() }}</strong>
+          @if (codigoFormulario()) {
+            <div class="codigo-formulario">
+              Código de formulario: <strong>{{ codigoFormulario() }}</strong>
             </div>
           }
           <p>
@@ -44,46 +42,39 @@
           </ul>
         </div>
 
-      } @else if (loadingDatos()) {
-        <div class="loading-page">
-          <mat-spinner diameter="40" />
-          <p>Cargando tu información...</p>
-        </div>
-
       } @else {
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-          <!-- ── Sección 1: Datos personales ── -->
+          <!-- ── Datos personales ── -->
           <h3 class="section-title">
             <mat-icon>person</mat-icon> Datos personales
           </h3>
-          <p class="section-hint">
-            <mat-icon class="hint-icon">lock</mat-icon>
-            Nombre, apellido, DNI y email vienen de tu registro y no pueden modificarse.
-          </p>
 
           <div class="form-row">
-            <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro">
-              <mat-label>Apellidos</mat-label>
-              <input matInput formControlName="apellidos" />
-              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Apellido/s</mat-label>
+              <input matInput formControlName="apellido" />
+              @if (form.get('apellido')?.invalid && form.get('apellido')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro">
-              <mat-label>Nombres</mat-label>
-              <input matInput formControlName="nombres" />
-              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Nombre/s</mat-label>
+              <input matInput formControlName="nombre" />
+              @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
           </div>
 
           <div class="form-row">
-            <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro">
+            <mat-form-field appearance="outline" class="flex-1">
               <mat-label>DNI</mat-label>
               <input matInput formControlName="dni" />
-              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+              @if (form.get('dni')?.invalid && form.get('dni')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="flex-1">
@@ -99,23 +90,35 @@
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Lugar de nacimiento</mat-label>
               <input matInput formControlName="lugarNacimiento" />
+              @if (form.get('lugarNacimiento')?.invalid && form.get('lugarNacimiento')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Nacionalidad</mat-label>
               <input matInput formControlName="nacionalidad" />
+              @if (form.get('nacionalidad')?.invalid && form.get('nacionalidad')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
           </div>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Domicilio (calle y número)</mat-label>
-              <input matInput formControlName="domicilio" />
+              <input matInput formControlName="direccion" />
+              @if (form.get('direccion')?.invalid && form.get('direccion')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Localidad</mat-label>
               <input matInput formControlName="localidad" />
+              @if (form.get('localidad')?.invalid && form.get('localidad')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
           </div>
 
@@ -123,89 +126,42 @@
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Teléfono</mat-label>
               <input matInput formControlName="telefono" type="tel" />
+              @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="flex-1"
-              matTooltip="Completado con los datos de tu registro">
+            <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Correo electrónico</mat-label>
-              <input matInput formControlName="email" />
-              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+              <input matInput formControlName="email" type="email" />
+              @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <mat-error>Email requerido y válido</mat-error>
+              }
             </mat-form-field>
           </div>
 
-          <!-- ── Sección 2: Carrera ── -->
+          <!-- ── Carrera ── -->
           <mat-divider class="section-divider" />
           <h3 class="section-title">
             <mat-icon>school</mat-icon> Carrera
           </h3>
 
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Seleccioná tu carrera (opcional)</mat-label>
+            <mat-label>Seleccioná tu carrera</mat-label>
             <mat-select formControlName="carreraId">
-              <mat-option [value]="null">— Sin seleccionar —</mat-option>
+              @if (loadingCarreras()) {
+                <mat-option disabled>Cargando carreras...</mat-option>
+              }
               @for (carrera of carreras(); track carrera.id) {
                 <mat-option [value]="carrera.id">{{ carrera.nombre }}</mat-option>
               }
             </mat-select>
+            @if (form.get('carreraId')?.hasError('required') && form.get('carreraId')?.touched) {
+              <mat-error>Debés seleccionar una carrera</mat-error>
+            }
           </mat-form-field>
 
-          <!-- ── Sección 3: Datos educativos ── -->
-          <mat-divider class="section-divider" />
-          <h3 class="section-title">
-            <mat-icon>menu_book</mat-icon> Estudios secundarios
-          </h3>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="flex-1">
-              <mat-label>Egresado de (institución)</mat-label>
-              <input matInput formControlName="egresadoDe" placeholder="Ej: Colegio Nacional N°1" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="flex-1">
-              <mat-label>Título de</mat-label>
-              <input matInput formControlName="tituloDe" placeholder="Ej: Bachiller con orientación en Informática" />
-            </mat-form-field>
-          </div>
-
-          <div class="debe-materias-row">
-            <mat-checkbox formControlName="debeMaterias" color="primary">
-              ¿Debe materias del secundario?
-            </mat-checkbox>
-          </div>
-
-          @if (debeMateriasValue) {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Indicar las materias adeudadas</mat-label>
-              <textarea matInput formControlName="materiasAdeudadas" rows="3"
-                placeholder="Ej: Matemáticas, Física, Historia"></textarea>
-            </mat-form-field>
-          }
-
-          <!-- ── Sección 4: Salud ── -->
-          <mat-divider class="section-divider" />
-          <h3 class="section-title">
-            <mat-icon>favorite</mat-icon> Información de salud
-          </h3>
-
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Si padece alguna afección específica, indiquela</mat-label>
-            <textarea matInput formControlName="afeccionEspecifica" rows="2"></textarea>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="width: 240px;">
-            <mat-label>Grupo sanguíneo</mat-label>
-            <input matInput formControlName="grupoSanguineo" placeholder="Ej: A+" />
-          </mat-form-field>
-
-          <!-- ── Error general ── -->
-          @if (error()) {
-            <div class="error-banner">
-              <mat-icon>error</mat-icon>
-              {{ error() }}
-            </div>
-          }
-
-          <!-- ── Sección 5: Requisitos (NO LLENAR — solo admin) ── -->
+          <!-- ── Requisitos (impresión — uso admin) ── -->
           <mat-divider class="section-divider" />
           <div class="requisitos-bloque">
             <div class="requisitos-header">
@@ -239,6 +195,14 @@
             </div>
           </div>
 
+          <!-- ── Error ── -->
+          @if (error()) {
+            <div class="error-banner">
+              <mat-icon>error</mat-icon>
+              {{ error() }}
+            </div>
+          }
+
           <!-- ── Aviso y botón ── -->
           <div class="aviso-impresion">
             <mat-icon>print</mat-icon>
@@ -256,10 +220,8 @@
               @if (loading()) {
                 <mat-spinner diameter="20" />
               } @else {
-                <ng-container>
-                  <mat-icon>send</mat-icon>
-                  Enviar formulario
-                </ng-container>
+                <mat-icon>send</mat-icon>
+                Enviar formulario
               }
             </button>
           </div>

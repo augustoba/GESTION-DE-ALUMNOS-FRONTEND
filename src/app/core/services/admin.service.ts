@@ -2,11 +2,28 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  ApiResponse, Preinscripcion, PreinscripcionDetalle,
-  PageResponse, EstadoDocumento, AprobarRequest,
-  Carrera, CarreraDetalle, AnioCarreraResponse, MateriaResponse, DocenteResumen,
-  DocenteResponse, MateriaDetalleDocente
+  ApiResponse, PageResponse,
+  Preinscripcion, PreinscripcionDetalle, EstadoPreinscripcion,
+  PagoResponse, DocumentoChecklistResponse, TipoDocumento, TurnoResponse,
+  Carrera, CarreraDetalle, AnioCarreraResponse, MateriaResponse,
+  DocenteResumen, DocenteResponse, MateriaDetalleDocente, UsuarioAdmin, AlumnoAdmin
 } from '../models/api-response.model';
+
+export interface CarreraRequest {
+  nombre: string;
+  descripcion: string;
+  activa: boolean;
+  cupoMaximo: number;
+  prefijoTurno: string;
+}
+
+export interface AnioRequest { numeroAnio: number; }
+
+export interface MateriaRequest {
+  nombre: string;
+  descripcion: string;
+  docenteId: number | null;
+}
 
 export interface DocenteRequest {
   nombres: string;
@@ -16,32 +33,22 @@ export interface DocenteRequest {
   telefono: string;
 }
 
-export interface CarreraRequest {
-  nombre: string;
-  descripcion: string;
-  activa: boolean;
-  cupoMaximo: number;
+export interface PagoRequest {
+  montoAbonado: number;
+  montoTotal?: number;
 }
 
-export interface AnioRequest { numeroAnio: number; }
-
-export interface MateriaRequest {
-  nombre: string;
-  descripcion: string;
-  diaSemana: string;
-  horaInicio: string;
-  horaFin: string;
-  aula: string;
-  docenteId: number | null;
-}
-
-export interface RevisionRequest {
-  decisiones: { documentoId: number; estado: EstadoDocumento }[];
+export interface UsuarioAdminRequest {
+  username: string;
+  password: string;
+  rol: 'ADMIN' | 'DOCENTE';
 }
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
+
+  // ── Preinscripciones — listado / búsqueda ─────────────────────────────────
 
   getPreinscripciones(page = 0, size = 50): Observable<ApiResponse<PageResponse<Preinscripcion>>> {
     return this.http.get<ApiResponse<PageResponse<Preinscripcion>>>(
@@ -49,39 +56,83 @@ export class AdminService {
     );
   }
 
-  getConDocumentosPendientes(): Observable<ApiResponse<Preinscripcion[]>> {
-    return this.http.get<ApiResponse<Preinscripcion[]>>('/api/preinscripciones/con-documentos-pendientes');
+  listarPorEstado(estado: EstadoPreinscripcion, page = 0, size = 50): Observable<ApiResponse<PageResponse<Preinscripcion>>> {
+    return this.http.get<ApiResponse<PageResponse<Preinscripcion>>>(
+      `/api/preinscripciones/estado/${estado}?page=${page}&size=${size}`
+    );
   }
 
-  getConDocumentosRechazados(): Observable<ApiResponse<Preinscripcion[]>> {
-    return this.http.get<ApiResponse<Preinscripcion[]>>('/api/preinscripciones/con-documentos-rechazados');
+  buscarPorCodigo(codigo: string): Observable<ApiResponse<Preinscripcion[]>> {
+    return this.http.get<ApiResponse<Preinscripcion[]>>(`/api/preinscripciones/buscar/codigo?codigo=${encodeURIComponent(codigo)}`);
   }
 
-  getConDocumentosFaltantes(): Observable<ApiResponse<Preinscripcion[]>> {
-    return this.http.get<ApiResponse<Preinscripcion[]>>('/api/preinscripciones/con-documentos-faltantes');
+  buscarPorDni(dni: string): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.get<ApiResponse<Preinscripcion>>(`/api/preinscripciones/buscar/dni?dni=${encodeURIComponent(dni)}`);
+  }
+
+  buscarPorNombre(nombre: string, apellido: string, page = 0, size = 50): Observable<ApiResponse<PageResponse<Preinscripcion>>> {
+    return this.http.get<ApiResponse<PageResponse<Preinscripcion>>>(
+      `/api/preinscripciones/buscar/nombre?nombre=${encodeURIComponent(nombre)}&apellido=${encodeURIComponent(apellido)}&page=${page}&size=${size}`
+    );
   }
 
   getDetalle(id: number): Observable<ApiResponse<PreinscripcionDetalle>> {
     return this.http.get<ApiResponse<PreinscripcionDetalle>>(`/api/preinscripciones/${id}`);
   }
 
-  confirmarRevision(id: number, request: RevisionRequest): Observable<ApiResponse<Preinscripcion>> {
-    return this.http.put<ApiResponse<Preinscripcion>>(
-      `/api/preinscripciones/${id}/confirmar-revision`, request
-    );
+  // ── Preinscripciones — cambios de estado ─────────────────────────────────
+
+  enRevision(id: number): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/en-revision`, {});
   }
 
-  aprobar(id: number, requisitos: AprobarRequest): Observable<ApiResponse<Preinscripcion>> {
-    return this.http.put<ApiResponse<Preinscripcion>>(
-      `/api/preinscripciones/${id}/aprobar`, requisitos
-    );
+  habilitar(id: number): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/habilitar`, {});
   }
 
-  getDocumentoBlob(documentoId: number): Observable<Blob> {
-    return this.http.get(`/api/documentos/${documentoId}/descargar`, { responseType: 'blob' });
+  rechazar(id: number): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/rechazar`, {});
   }
 
-  // ── Carreras admin ──────────────────────────────────────────
+  // ── Pago ─────────────────────────────────────────────────────────────────
+
+  registrarPago(id: number, req: PagoRequest): Observable<ApiResponse<PagoResponse>> {
+    return this.http.post<ApiResponse<PagoResponse>>(`/api/preinscripciones/${id}/pago`, req);
+  }
+
+  verPago(id: number): Observable<ApiResponse<PagoResponse>> {
+    return this.http.get<ApiResponse<PagoResponse>>(`/api/preinscripciones/${id}/pago`);
+  }
+
+  anularPago(id: number): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/preinscripciones/${id}/pago`);
+  }
+
+  // ── Checklist ────────────────────────────────────────────────────────────
+
+  verChecklist(id: number): Observable<ApiResponse<DocumentoChecklistResponse[]>> {
+    return this.http.get<ApiResponse<DocumentoChecklistResponse[]>>(`/api/preinscripciones/${id}/checklist`);
+  }
+
+  marcarDocumento(id: number, tipo: TipoDocumento): Observable<ApiResponse<DocumentoChecklistResponse>> {
+    return this.http.post<ApiResponse<DocumentoChecklistResponse>>(`/api/preinscripciones/${id}/checklist/${tipo}`, {});
+  }
+
+  desmarcarDocumento(id: number, tipo: TipoDocumento): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/preinscripciones/${id}/checklist/${tipo}`);
+  }
+
+  // ── Turno ─────────────────────────────────────────────────────────────────
+
+  asignarTurno(id: number): Observable<ApiResponse<TurnoResponse>> {
+    return this.http.post<ApiResponse<TurnoResponse>>(`/api/preinscripciones/${id}/turno`, {});
+  }
+
+  verTurno(id: number): Observable<ApiResponse<TurnoResponse>> {
+    return this.http.get<ApiResponse<TurnoResponse>>(`/api/preinscripciones/${id}/turno`);
+  }
+
+  // ── Carreras ──────────────────────────────────────────────────────────────
 
   getCarreras(): Observable<ApiResponse<Carrera[]>> {
     return this.http.get<ApiResponse<Carrera[]>>('/api/carreras/todas');
@@ -127,7 +178,7 @@ export class AdminService {
     return this.http.get<ApiResponse<DocenteResumen[]>>('/api/carreras/docentes');
   }
 
-  // ── Docentes CRUD ───────────────────────────────────────────
+  // ── Docentes CRUD ─────────────────────────────────────────────────────────
 
   getDocentesTodos(): Observable<ApiResponse<DocenteResponse[]>> {
     return this.http.get<ApiResponse<DocenteResponse[]>>('/api/docentes');
@@ -149,5 +200,39 @@ export class AdminService {
 
   getDocenteMaterias(id: number): Observable<ApiResponse<MateriaDetalleDocente[]>> {
     return this.http.get<ApiResponse<MateriaDetalleDocente[]>>(`/api/docentes/${id}/materias`);
+  }
+
+  // ── Alumnos ──────────────────────────────────────────────────────────────
+
+  getAlumnos(page = 0, size = 50): Observable<ApiResponse<PageResponse<AlumnoAdmin>>> {
+    return this.http.get<ApiResponse<PageResponse<AlumnoAdmin>>>(`/api/alumnos?page=${page}&size=${size}`);
+  }
+
+  buscarAlumnos(nombre: string, apellido: string, page = 0, size = 50): Observable<ApiResponse<PageResponse<AlumnoAdmin>>> {
+    return this.http.get<ApiResponse<PageResponse<AlumnoAdmin>>>(
+      `/api/alumnos/buscar?nombre=${encodeURIComponent(nombre)}&apellido=${encodeURIComponent(apellido)}&page=${page}&size=${size}`
+    );
+  }
+
+  habilitarAlumno(id: number): Observable<ApiResponse<AlumnoAdmin>> {
+    return this.http.put<ApiResponse<AlumnoAdmin>>(`/api/alumnos/${id}/habilitar`, {});
+  }
+
+  deshabilitarAlumno(id: number): Observable<ApiResponse<AlumnoAdmin>> {
+    return this.http.put<ApiResponse<AlumnoAdmin>>(`/api/alumnos/${id}/deshabilitar`, {});
+  }
+
+  // ── SUPER_ADMIN — gestión de usuarios ────────────────────────────────────
+
+  listarAdmins(): Observable<ApiResponse<UsuarioAdmin[]>> {
+    return this.http.get<ApiResponse<UsuarioAdmin[]>>('/api/admin/usuarios');
+  }
+
+  crearAdmin(req: UsuarioAdminRequest): Observable<ApiResponse<UsuarioAdmin>> {
+    return this.http.post<ApiResponse<UsuarioAdmin>>('/api/admin/usuarios', req);
+  }
+
+  desactivarAdmin(id: number): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/admin/usuarios/${id}`);
   }
 }

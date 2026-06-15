@@ -47,11 +47,22 @@
       <button mat-icon-button (click)="volver()" class="back-btn" title="Volver">
         <mat-icon>arrow_back</mat-icon>
       </button>
-      <span class="toolbar-title">Revisión de preinscripción</span>
-      @if (preinscripcion()) {
-        <span class="toolbar-sub">#{{ preinscripcion()!.id }}</span>
+      <span class="toolbar-title">Revisión</span>
+      @if (preinscripcion(); as pre) {
+        <span class="toolbar-code">{{ pre.codigoFormulario }}</span>
+        <span class="spacer"></span>
+        <span [class]="'estado-chip-toolbar chip-' + (pre.estado === 'HABILITADO' ? 'success' : pre.estado === 'RECHAZADO' ? 'muted' : pre.estado === 'EN_REVISION' ? 'info' : 'warn')">
+          <mat-icon class="chip-icon">{{ pre.estado === 'HABILITADO' ? 'check_circle' : pre.estado === 'RECHAZADO' ? 'cancel' : pre.estado === 'EN_REVISION' ? 'rate_review' : 'hourglass_empty' }}</mat-icon>
+          {{ estadoLabel(pre.estado) }}
+        </span>
+      } @else {
+        <span class="spacer"></span>
       }
-      <span class="spacer"></span>
+      <button mat-icon-button class="theme-toggle-btn"
+              (click)="themeService.toggle()"
+              [title]="themeService.dark() ? 'Modo claro' : 'Modo oscuro'">
+        <mat-icon>{{ themeService.dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
     </mat-toolbar>
 
     <div class="content-area">
@@ -64,20 +75,29 @@
 
       @else if (preinscripcion(); as pre) {
 
-        <!-- ── Datos del alumno ───────────────────────── -->
-        <mat-card class="section-card">
+        <!-- ── Datos personales ──────────────────────────── -->
+        <mat-card class="section-card animate-fade-up">
           <mat-card-header>
-            <mat-icon mat-card-avatar>person</mat-icon>
+            <div class="card-avatar-wrap" mat-card-avatar>
+              <mat-icon>person</mat-icon>
+            </div>
             <mat-card-title>{{ pre.apellido }}, {{ pre.nombre }}</mat-card-title>
-            <mat-card-subtitle>{{ pre.carrera ?? 'Sin carrera seleccionada' }}</mat-card-subtitle>
+            <mat-card-subtitle>{{ pre.carreraNombre ?? 'Sin carrera seleccionada' }}</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
             <div class="datos-grid">
-
               <div class="dato">
                 <span class="dato-label">DNI</span>
                 <span class="dato-valor">{{ pre.dni }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Email</span>
+                <span class="dato-valor">{{ pre.email }}</span>
+              </div>
+              <div class="dato">
+                <span class="dato-label">Teléfono</span>
+                <span class="dato-valor">{{ pre.telefono || '—' }}</span>
               </div>
               <div class="dato">
                 <span class="dato-label">Fecha de nacimiento</span>
@@ -92,7 +112,7 @@
                 <span class="dato-valor">{{ pre.nacionalidad || '—' }}</span>
               </div>
               <div class="dato">
-                <span class="dato-label">Domicilio</span>
+                <span class="dato-label">Dirección</span>
                 <span class="dato-valor">{{ pre.direccion || '—' }}</span>
               </div>
               <div class="dato">
@@ -100,110 +120,149 @@
                 <span class="dato-valor">{{ pre.localidad || '—' }}</span>
               </div>
               <div class="dato">
-                <span class="dato-label">Teléfono</span>
-                <span class="dato-valor">{{ pre.telefono || '—' }}</span>
-              </div>
-              <div class="dato">
-                <span class="dato-label">Email</span>
-                <span class="dato-valor">{{ pre.email }}</span>
-              </div>
-
-            </div>
-
-            <mat-divider class="inner-divider" />
-
-            <div class="datos-grid">
-              <div class="dato">
-                <span class="dato-label">Egresado de</span>
-                <span class="dato-valor">{{ pre.egresadoDe || '—' }}</span>
-              </div>
-              <div class="dato">
-                <span class="dato-label">Título de</span>
-                <span class="dato-valor">{{ pre.tituloDe || '—' }}</span>
-              </div>
-              <div class="dato">
-                <span class="dato-label">¿Debe materias?</span>
-                <span class="dato-valor">{{ pre.debeMaterias ? 'Sí' : 'No' }}</span>
-              </div>
-              @if (pre.debeMaterias && pre.materiasAdeudadas) {
-                <div class="dato dato-full">
-                  <span class="dato-label">Materias adeudadas</span>
-                  <span class="dato-valor">{{ pre.materiasAdeudadas }}</span>
-                </div>
-              }
-              @if (pre.afeccionEspecifica) {
-                <div class="dato dato-full">
-                  <span class="dato-label">Afección específica</span>
-                  <span class="dato-valor">{{ pre.afeccionEspecifica }}</span>
-                </div>
-              }
-              <div class="dato">
-                <span class="dato-label">Grupo sanguíneo</span>
-                <span class="dato-valor">{{ pre.grupoSanguineo || '—' }}</span>
-              </div>
-              <div class="dato">
                 <span class="dato-label">Inscripto el</span>
                 <span class="dato-valor">{{ pre.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
             </div>
-
           </mat-card-content>
         </mat-card>
 
-        <!-- ── Requisitos presenciales ───────────────── -->
-        <mat-card class="section-card requisitos-card">
+        <!-- ── Pago ─────────────────────────────────────── -->
+        <mat-card class="section-card pago-card animate-fade-up" style="animation-delay:0.06s">
           <mat-card-header>
-            <mat-icon mat-card-avatar>checklist</mat-icon>
+            <div class="card-avatar-wrap pago-avatar" mat-card-avatar>
+              <mat-icon>payments</mat-icon>
+            </div>
+            <mat-card-title>Pago</mat-card-title>
+            @if (pre.pago) {
+              <mat-card-subtitle>
+                <span [class]="'pago-estado-badge pago-' + pre.pago.estado.toLowerCase()">
+                  {{ pagoLabel(pre.pago.estado) }}
+                </span>
+                &nbsp;·&nbsp;
+                {{ pre.pago.montoAbonado | currency:'ARS':'symbol':'1.0-0' }} abonado
+                @if (pre.pago.montoTotal) {
+                  de {{ pre.pago.montoTotal | currency:'ARS':'symbol':'1.0-0' }}
+                }
+              </mat-card-subtitle>
+            }
+          </mat-card-header>
+
+          <mat-card-content>
+            @if (pre.pago && pre.pago.montoTotal && pre.pago.montoTotal > 0) {
+              <div class="pago-progress-wrap">
+                <mat-progress-bar
+                  class="pago-progress"
+                  mode="determinate"
+                  [value]="(pre.pago.montoAbonado / pre.pago.montoTotal) * 100"
+                  [color]="pre.pago.estado === 'COMPLETO' ? 'primary' : 'accent'"
+                />
+                <span class="pago-pct">
+                  {{ (pre.pago.montoAbonado / pre.pago.montoTotal * 100).toFixed(0) }}% abonado
+                </span>
+              </div>
+            }
+
+            @if (pre.estado !== 'HABILITADO' && pre.estado !== 'RECHAZADO') {
+              <form [formGroup]="pagoForm" class="pago-form" (ngSubmit)="registrarPago()">
+                <mat-form-field appearance="outline" class="pago-field">
+                  <mat-label>Monto a registrar ($)</mat-label>
+                  <mat-icon matPrefix>attach_money</mat-icon>
+                  <input matInput type="number" min="1" formControlName="monto" />
+                  @if (pagoForm.get('monto')?.invalid && pagoForm.get('monto')?.touched) {
+                    <mat-error>Ingresá un monto válido</mat-error>
+                  }
+                </mat-form-field>
+                <button mat-flat-button color="primary" type="submit" [disabled]="registrandoPago()">
+                  @if (registrandoPago()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>add</mat-icon>
+                    Registrar pago
+                  }
+                </button>
+              </form>
+            }
+
+            @if (!pre.pago || pre.pago.estado === 'SIN_PAGO') {
+              <p class="pago-hint">
+                <mat-icon>info_outline</mat-icon>
+                Sin pagos registrados aún.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <!-- ── Documentos checklist ─────────────────────── -->
+        <mat-card class="section-card animate-fade-up" style="animation-delay:0.12s">
+          <mat-card-header>
+            <div class="card-avatar-wrap docs-avatar" mat-card-avatar>
+              <mat-icon>checklist</mat-icon>
+            </div>
             <mat-card-title>Documentación presentada</mat-card-title>
             <mat-card-subtitle>
-              Marcá los documentos físicos que el alumno trajo. Sección "NO LLENAR" del formulario.
+              {{ pre.checklist ? pre.checklist.filter(c => c.presentado).length : 0 }}/{{ tiposDoc.length }} documentos recibidos
             </mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
-            <form [formGroup]="requisitosForm" class="requisitos-form">
-              <mat-checkbox formControlName="tituloSecundario" color="primary">
-                Título Secundario
-              </mat-checkbox>
-              <mat-checkbox formControlName="constanciaTituloTramite" color="primary">
-                Constancia de Título en Trámite
-              </mat-checkbox>
-              <mat-checkbox formControlName="dni" color="primary">
-                DNI
-              </mat-checkbox>
-              <mat-checkbox formControlName="foto" color="primary">
-                Foto carnet
-              </mat-checkbox>
-              <mat-checkbox formControlName="actaNacimiento" color="primary">
-                Acta de Nacimiento
-              </mat-checkbox>
-              <mat-checkbox formControlName="psicofisico" color="primary">
-                Psicofísico
-              </mat-checkbox>
-              <mat-checkbox formControlName="buenaConducta" color="primary">
-                Certificado de Buena Conducta
-              </mat-checkbox>
-            </form>
+            <div class="checklist-grid">
+              @for (item of tiposDoc; track item.tipo) {
+                <div class="checklist-item" [class.is-checked]="estaPresente(item.tipo)"
+                     [class.is-loading]="toggleandoDoc() === item.tipo">
+                  <div class="checklist-icon-wrap">
+                    <mat-icon class="checklist-doc-icon">{{ estaPresente(item.tipo) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                  </div>
+                  <mat-checkbox
+                    class="checklist-cb"
+                    color="primary"
+                    [checked]="estaPresente(item.tipo)"
+                    [disabled]="toggleandoDoc() === item.tipo || pre.estado === 'HABILITADO' || pre.estado === 'RECHAZADO'"
+                    (change)="toggleDoc(item.tipo)">
+                    <span class="checklist-label">{{ item.label }}</span>
+                  </mat-checkbox>
+                  @if (toggleandoDoc() === item.tipo) {
+                    <mat-spinner diameter="16" class="toggle-spinner" />
+                  }
+                </div>
+              }
+            </div>
           </mat-card-content>
         </mat-card>
 
-        <!-- ── Acción final ───────────────────────────── -->
-        <div class="actions-bar">
-          @if (pre.estado === 'APROBADA') {
-            <div class="estado-aprobado">
+        <!-- ── Acciones ─────────────────────────────────── -->
+        <div class="actions-bar animate-fade-up" style="animation-delay:0.18s">
+          @if (pre.estado === 'HABILITADO') {
+            <div class="estado-final chip-success">
               <mat-icon>check_circle</mat-icon>
-              Este alumno ya fue dado de alta.
+              Habilitado como alumno. Se envió email con credenciales.
+            </div>
+          } @else if (pre.estado === 'RECHAZADO') {
+            <div class="estado-final chip-muted">
+              <mat-icon>cancel</mat-icon>
+              Preinscripción rechazada.
             </div>
           } @else {
-            <button
-              mat-flat-button
-              color="primary"
-              class="btn-confirmar"
-              [disabled]="aprobando()"
-              (click)="aprobar()">
-              <mat-icon>how_to_reg</mat-icon>
-              {{ aprobando() ? 'Procesando...' : 'Dar de alta al alumno' }}
-            </button>
+            <div class="actions-btns">
+              @if (pre.estado === 'PENDIENTE') {
+                <button mat-stroked-button color="primary" (click)="pasarARevision()" [disabled]="accionando()">
+                  <mat-icon>rate_review</mat-icon>
+                  Pasar a En Revisión
+                </button>
+              }
+              <button mat-flat-button color="primary" (click)="habilitar()" [disabled]="accionando()"
+                      matTooltip="Crea la cuenta del alumno y envía credenciales por email">
+                <mat-icon>how_to_reg</mat-icon>
+                Habilitar alumno
+              </button>
+              <button mat-stroked-button color="warn" (click)="rechazar()" [disabled]="accionando()">
+                <mat-icon>cancel</mat-icon>
+                Rechazar
+              </button>
+              @if (accionando()) {
+                <mat-spinner diameter="24" />
+              }
+            </div>
           }
         </div>
 

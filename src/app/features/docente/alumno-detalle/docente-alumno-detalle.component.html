@@ -39,7 +39,7 @@
       </button>
       <mat-icon class="toolbar-icon">person</mat-icon>
       @if (alumno()) {
-        <span class="toolbar-title">{{ alumno()!.nombre }} {{ alumno()!.apellido }}</span>
+        <span class="toolbar-title">{{ alumno()!.nombres }} {{ alumno()!.apellidos }}</span>
       } @else {
         <span class="toolbar-title">Alumno</span>
       }
@@ -57,10 +57,10 @@
         <mat-card class="alumno-card">
           <mat-card-content class="alumno-content">
             <div class="alumno-avatar">
-              {{ a.nombre[0] }}{{ a.apellido[0] }}
+              {{ a.nombres[0] }}{{ a.apellidos[0] }}
             </div>
             <div class="alumno-info">
-              <div class="alumno-nombre">{{ a.nombre }} {{ a.apellido }}</div>
+              <div class="alumno-nombre">{{ a.nombres }} {{ a.apellidos }}</div>
               <div class="alumno-datos">
                 <span class="dato-item">
                   <mat-icon>badge</mat-icon> {{ a.dni }}

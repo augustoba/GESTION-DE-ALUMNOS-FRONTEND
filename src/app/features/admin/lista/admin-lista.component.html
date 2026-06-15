@@ -14,14 +14,24 @@
         <mat-icon matListItemIcon>assignment</mat-icon>
         <span matListItemTitle>Preinscripciones</span>
       </mat-list-item>
-      <mat-list-item (click)="irACarreras()">
+      <mat-list-item (click)="irAAlumnos()">
         <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Alumnos</span>
+      </mat-list-item>
+      <mat-list-item (click)="irACarreras()">
+        <mat-icon matListItemIcon>menu_book</mat-icon>
         <span matListItemTitle>Carreras</span>
       </mat-list-item>
       <mat-list-item (click)="irADocentes()">
         <mat-icon matListItemIcon>people</mat-icon>
         <span matListItemTitle>Docentes</span>
       </mat-list-item>
+      @if (isSuperAdmin) {
+        <mat-list-item (click)="irAUsuarios()">
+          <mat-icon matListItemIcon>manage_accounts</mat-icon>
+          <span matListItemTitle>Usuarios</span>
+        </mat-list-item>
+      }
     </mat-nav-list>
 
     <div class="sidenav-footer">
@@ -30,7 +40,7 @@
         <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
         <div class="user-name-text">
           <span class="user-nombre">Administrador</span>
-          <span class="user-rol">Admin</span>
+          <span class="user-rol">{{ isSuperAdmin ? 'Super Admin' : 'Admin' }}</span>
         </div>
       </div>
       <mat-divider />
@@ -46,46 +56,257 @@
     <mat-toolbar class="toolbar">
       <span class="toolbar-title">Preinscripciones</span>
       <span class="spacer"></span>
-      @if (!loading()) {
+      @if (!loading() && !buscando()) {
         <span class="total-badge">{{ preinscripciones().length }} registros</span>
       }
+      <button mat-icon-button class="theme-toggle-btn"
+              (click)="themeService.toggle()"
+              [title]="themeService.dark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <mat-icon>{{ themeService.dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
     </mat-toolbar>
 
     <div class="content-area">
 
-      <!-- Filtros -->
-      <mat-button-toggle-group
-        class="filter-group"
-        [value]="filtro()"
-        (change)="setFiltro($event.value)">
-        <mat-button-toggle value="todas">
-          <mat-icon>list_alt</mat-icon>
-          Todas
-        </mat-button-toggle>
-        <mat-button-toggle value="pendientes">
-          <mat-icon>hourglass_empty</mat-icon>
-          Docs. pendientes
-        </mat-button-toggle>
-        <mat-button-toggle value="rechazados">
-          <mat-icon>error_outline</mat-icon>
-          Docs. rechazados
-        </mat-button-toggle>
-        <mat-button-toggle value="faltantes">
-          <mat-icon>folder_off</mat-icon>
-          Docs. faltantes
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+      <!-- ── Control de preinscripción ──────────────────────────── -->
+      <mat-card class="turnos-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>assignment</mat-icon>
+          <mat-card-title>Formulario de preinscripción</mat-card-title>
+          <mat-card-subtitle>Habilitá o deshabilitá el formulario público para que los aspirantes puedan preinscribirse.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="turnos-toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Estado actual:</span>
+              <span class="toggle-status" [class.habilitado]="preinscripcionHabilitada()" [class.deshabilitado]="!preinscripcionHabilitada()">
+                <mat-icon>{{ preinscripcionHabilitada() ? 'lock_open' : 'lock' }}</mat-icon>
+                {{ preinscripcionHabilitada() ? 'Habilitado' : 'Deshabilitado' }}
+              </span>
+            </div>
+            <mat-slide-toggle
+              [checked]="preinscripcionHabilitada()"
+              [disabled]="toggleandoPreinscripcion()"
+              (change)="togglePreinscripcion($event.checked)"
+              color="primary">
+              {{ preinscripcionHabilitada() ? 'Deshabilitar' : 'Habilitar' }}
+            </mat-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ── Configuración de turnos ──────────────────────────── -->
+      <mat-card class="turnos-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>event_available</mat-icon>
+          <mat-card-title>Días de inscripción presencial</mat-card-title>
+          <mat-card-subtitle>
+            Configurá los días, horarios y cupos. Habilitá la solicitud para que los aspirantes reciban el email con el link.
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+
+          <!-- Toggle habilitar (solo SUPER_ADMIN) -->
+          @if (isSuperAdmin) {
+            <div class="turnos-toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Solicitud de turnos:</span>
+                <span class="toggle-status" [class.habilitado]="turnosHabilitados()" [class.deshabilitado]="!turnosHabilitados()">
+                  <mat-icon>{{ turnosHabilitados() ? 'lock_open' : 'lock' }}</mat-icon>
+                  {{ turnosHabilitados() ? 'Habilitada — los aspirantes pueden solicitar turno' : 'Deshabilitada' }}
+                </span>
+              </div>
+              @if (!turnosHabilitados()) {
+                <button mat-flat-button color="primary" [disabled]="toggleandoTurnos()" (click)="habilitarTurnos()">
+                  @if (toggleandoTurnos()) { <mat-spinner diameter="18" /> }
+                  @else { <mat-icon>send</mat-icon> Habilitar y notificar aspirantes }
+                </button>
+              } @else {
+                <button mat-stroked-button color="warn" [disabled]="toggleandoTurnos()" (click)="deshabilitarTurnos()">
+                  @if (toggleandoTurnos()) { <mat-spinner diameter="18" /> }
+                  @else { <mat-icon>lock</mat-icon> Deshabilitar }
+                </button>
+              }
+            </div>
+            <mat-divider class="inner-divider" />
+          }
+
+          <!-- Tabla de días configurados -->
+          @if (loadingDias()) {
+            <div class="loading-center"><mat-spinner diameter="32" /></div>
+          } @else if (!diasInscripcion().length) {
+            <p class="no-dias">No hay días de inscripción configurados.</p>
+          } @else {
+            <table mat-table [dataSource]="diasInscripcion()" class="dias-table">
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let d">{{ d.nombre }}</td>
+              </ng-container>
+              <ng-container matColumnDef="fecha">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let d">{{ d.fecha | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="horario">
+                <th mat-header-cell *matHeaderCellDef>Horario</th>
+                <td mat-cell *matCellDef="let d">{{ d.horarioInicio.substring(0,5) }} – {{ d.horarioFin.substring(0,5) }}</td>
+              </ng-container>
+              <ng-container matColumnDef="cupo">
+                <th mat-header-cell *matHeaderCellDef>Cupo máx.</th>
+                <td mat-cell *matCellDef="let d"><strong>{{ d.cupoMaximo }}</strong> turnos</td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let d" class="acciones-cell">
+                  <button mat-icon-button title="Editar" (click)="abrirFormDia(d)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" title="Eliminar" (click)="eliminarDia(d)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="diasColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: diasColumns;"></tr>
+            </table>
+          }
+
+          <!-- Botón agregar / formulario -->
+          @if (!mostrarFormDia()) {
+            <button mat-stroked-button color="primary" class="btn-agregar-dia" (click)="abrirFormDia()">
+              <mat-icon>add</mat-icon> Agregar día
+            </button>
+          } @else {
+            <mat-divider class="inner-divider" />
+            <h4 class="form-dia-titulo">{{ editandoDia() ? 'Editar día' : 'Nuevo día de inscripción' }}</h4>
+            <form [formGroup]="diaForm" class="form-dia">
+              <div class="form-dia-row">
+                <mat-form-field appearance="outline" class="flex-2">
+                  <mat-label>Nombre del día</mat-label>
+                  <input matInput formControlName="nombre" placeholder="Ej: Día 1 – Técnico en Administración" />
+                  @if (diaForm.get('nombre')?.invalid && diaForm.get('nombre')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Fecha</mat-label>
+                  <input matInput type="date" formControlName="fecha" />
+                  @if (diaForm.get('fecha')?.invalid && diaForm.get('fecha')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+              <div class="form-dia-row">
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Hora inicio</mat-label>
+                  <input matInput type="time" formControlName="horarioInicio" />
+                  @if (diaForm.get('horarioInicio')?.invalid && diaForm.get('horarioInicio')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Hora fin</mat-label>
+                  <input matInput type="time" formControlName="horarioFin" />
+                  @if (diaForm.get('horarioFin')?.invalid && diaForm.get('horarioFin')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Cupo máximo</mat-label>
+                  <input matInput type="number" formControlName="cupoMaximo" min="1" />
+                  @if (diaForm.get('cupoMaximo')?.invalid && diaForm.get('cupoMaximo')?.touched) {
+                    <mat-error>Mínimo 1</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Intervalo (min)</mat-label>
+                  <input matInput type="number" formControlName="intervaloMinutos" min="1" />
+                </mat-form-field>
+              </div>
+              <div class="form-dia-actions">
+                <button mat-button type="button" (click)="cancelarFormDia()">Cancelar</button>
+                <button mat-flat-button color="primary" type="button" [disabled]="guardandoDia()" (click)="guardarDia()">
+                  @if (guardandoDia()) { <mat-spinner diameter="18" /> }
+                  @else { <mat-icon>save</mat-icon> {{ editandoDia() ? 'Guardar cambios' : 'Crear día' }} }
+                </button>
+              </div>
+            </form>
+          }
+
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Búsqueda -->
+      <div class="search-card">
+        <div class="search-bar">
+          <mat-form-field appearance="outline" class="search-tipo">
+            <mat-label>Buscar por</mat-label>
+            <mat-select [ngModel]="tipoBusqueda()" (ngModelChange)="tipoBusqueda.set($event)">
+              <mat-option value="codigo">Código</mat-option>
+              <mat-option value="dni">DNI</mat-option>
+              <mat-option value="nombre">Nombre / Apellido</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="search-input">
+            <mat-label>Buscar...</mat-label>
+            <mat-icon matPrefix class="search-prefix-icon">search</mat-icon>
+            <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)"
+                   (keyup.enter)="buscar()" />
+            @if (busqueda()) {
+              <button matSuffix mat-icon-button (click)="limpiarBusqueda()" title="Limpiar">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" class="search-btn" (click)="buscar()" [disabled]="buscando()">
+            <mat-icon>search</mat-icon>
+            Buscar
+          </button>
+        </div>
+
+        <!-- Filtros (ocultos en modo búsqueda) -->
+        @if (!modoBusqueda()) {
+          <mat-button-toggle-group
+            class="filter-group"
+            [value]="filtro()"
+            (change)="setFiltro($event.value)">
+            <mat-button-toggle value="todas">
+              <mat-icon>list_alt</mat-icon>
+              Todas
+            </mat-button-toggle>
+            <mat-button-toggle value="PENDIENTE">
+              <mat-icon>hourglass_empty</mat-icon>
+              Pendientes
+            </mat-button-toggle>
+            <mat-button-toggle value="EN_REVISION">
+              <mat-icon>rate_review</mat-icon>
+              En revisión
+            </mat-button-toggle>
+            <mat-button-toggle value="HABILITADO">
+              <mat-icon>check_circle</mat-icon>
+              Habilitados
+            </mat-button-toggle>
+            <mat-button-toggle value="RECHAZADO">
+              <mat-icon>cancel</mat-icon>
+              Rechazados
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        }
+      </div>
 
       <!-- Loading -->
-      @if (loading()) {
+      @if (loading() || buscando()) {
         <div class="loading-center">
           <mat-spinner diameter="48" />
+          <p>Cargando...</p>
         </div>
       }
 
       <!-- Empty -->
       @else if (!preinscripciones().length) {
-        <div class="empty-state">
+        <div class="empty-state animate-fade-in">
           <mat-icon>inbox</mat-icon>
           <p>No hay preinscripciones para mostrar.</p>
         </div>
@@ -93,14 +314,22 @@
 
       <!-- Tabla -->
       @else {
-        <div class="table-wrapper">
+        <div class="table-wrapper animate-fade-up">
           <table mat-table [dataSource]="preinscripciones()" class="data-table">
+
+            <!-- Código -->
+            <ng-container matColumnDef="codigo">
+              <th mat-header-cell *matHeaderCellDef>Código</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="cell-codigo">{{ row.codigoFormulario }}</span>
+              </td>
+            </ng-container>
 
             <!-- Alumno -->
             <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Alumno</th>
+              <th mat-header-cell *matHeaderCellDef>Aspirante</th>
               <td mat-cell *matCellDef="let row">
-                <span class="cell-nombre">{{ row.nombre }} {{ row.apellido }}</span>
+                <span class="cell-nombre">{{ row.apellido }}, {{ row.nombre }}</span>
                 <span class="cell-email">{{ row.email }}</span>
               </td>
             </ng-container>
@@ -141,7 +370,7 @@
               <td mat-cell *matCellDef="let row">
                 <button mat-flat-button color="primary" class="btn-revisar" (click)="revisar(row.id)">
                   <mat-icon>rate_review</mat-icon>
-                  Revisar
+                  Ver
                 </button>
               </td>
             </ng-container>

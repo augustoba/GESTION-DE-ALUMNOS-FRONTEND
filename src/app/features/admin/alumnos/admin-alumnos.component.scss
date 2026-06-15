@@ -1,0 +1,129 @@
+:host { display: block; height: 100vh; }
+.sidenav-container { height: 100%; }
+
+.sidenav {
+  width: 268px;
+  background: linear-gradient(180deg, #005f7a 0%, #003d52 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-right: none !important;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.20);
+}
+
+.main-content { display: flex; flex-direction: column; background: var(--color-bg); overflow-y: auto; }
+
+.sidenav-header {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 28px 20px 20px;
+}
+
+.sidenav-logo { height: 68px; width: auto; object-fit: contain; }
+
+.sidenav-inst {
+  font-size: 0.72rem; font-weight: 700; text-align: center;
+  letter-spacing: 0.08em; color: rgba(255,255,255,0.70);
+  text-transform: uppercase; line-height: 1.5;
+}
+
+.nav-list {
+  flex: 1; padding: 12px 12px 0;
+  mat-list-item {
+    color: rgba(255,255,255,0.65); border-radius: var(--radius-md) !important;
+    margin-bottom: 4px; cursor: pointer; font-weight: 500;
+    &:hover { background: rgba(255,255,255,0.10); color: #fff; }
+    &.active { background: rgba(255,255,255,0.14); color: #fff; font-weight: 700; }
+  }
+  mat-icon { color: rgba(255,255,255,0.55); }
+}
+
+.sidenav-footer { padding: 0 0 12px; }
+
+.sidenav-user {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; background: rgba(0,0,0,0.20);
+}
+
+.user-avatar-icon { font-size: 40px; height: 40px; width: 40px; color: rgba(255,255,255,0.50); }
+.user-name-text { display: flex; flex-direction: column; overflow: hidden; }
+.user-nombre { font-size: 0.85rem; font-weight: 600; color: #fff; }
+.user-rol { font-size: 0.68rem; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+
+.logout-btn {
+  width: 100%; color: rgba(255,255,255,0.60) !important;
+  justify-content: flex-start; padding-left: 20px;
+  &:hover { color: #fff !important; }
+}
+
+.toolbar {
+  background: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  position: sticky; top: 0; z-index: var(--z-base);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+
+.toolbar-title { font-weight: 700; font-size: 1.1rem; color: var(--color-primary-darker); }
+.spacer { flex: 1; }
+
+.total-badge {
+  font-size: 0.78rem; font-weight: 600; color: var(--color-text-muted);
+  background: var(--color-primary-light); padding: 4px 12px;
+  border-radius: var(--radius-full); margin-right: 8px;
+}
+
+.content-area { padding: 24px 28px; flex: 1; }
+
+.search-bar {
+  display: flex; gap: 12px; align-items: flex-start;
+  flex-wrap: wrap; margin-bottom: 20px;
+}
+
+.search-input { flex: 1; min-width: 280px; }
+
+.search-btn { height: 56px; padding: 0 20px; font-weight: 600 !important; }
+
+.table-wrapper {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.data-table {
+  width: 100%;
+  th.mat-header-cell {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--color-text-muted);
+    background: var(--color-bg); padding: 14px 16px;
+    border-bottom: 2px solid var(--color-border);
+  }
+  td.mat-cell {
+    padding: 12px 16px; font-size: 0.875rem;
+    color: var(--color-text); border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+  .table-row:hover { background: var(--color-primary-light) !important; }
+}
+
+.cell-nombre { display: block; font-weight: 600; }
+.cell-email  { display: block; font-size: 0.76rem; color: var(--color-text-muted); margin-top: 2px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 3px 10px; border-radius: var(--radius-full);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  mat-icon { font-size: 14px; height: 14px; width: 14px; }
+  &.chip-success { background: #DCFCE7; color: #15803D; }
+  &.chip-muted   { background: #F1F5F9; color: #64748B; }
+}
+
+.loading-center, .empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80px 24px; gap: 16px;
+  color: var(--color-text-muted);
+  mat-icon { font-size: 56px; height: 56px; width: 56px; opacity: 0.4; }
+  p { margin: 0; font-size: 0.95rem; }
+}

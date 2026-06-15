@@ -55,6 +55,11 @@
         }
       </span>
       <span class="spacer"></span>
+      <button mat-icon-button class="theme-toggle-btn"
+              (click)="themeService.toggle()"
+              [title]="themeService.dark() ? 'Modo claro' : 'Modo oscuro'">
+        <mat-icon>{{ themeService.dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
     </mat-toolbar>
 
     <!-- Content area -->
@@ -185,69 +190,99 @@
       <!-- ══ DOCUMENTOS ══════════════════════════════ -->
       @if (activeSection() === 'documentos') {
         <div class="section-documentos">
+
+          <!-- Input de archivo oculto compartido -->
+          <input #docFileInput type="file" hidden
+                 accept="image/jpeg,image/png,image/jpg,application/pdf"
+                 (change)="onFileSelected($event)">
+
+          <!-- Encabezado con progreso -->
+          <div class="docs-header">
+            <p class="docs-descripcion">
+              Subí una foto o PDF de cada documento. Serán revisados por la administración del instituto.
+              Se aceptan archivos JPG, PNG o PDF.
+            </p>
+            <div class="docs-progreso-wrap">
+              <span class="progreso-label">
+                <strong>{{ docsValidados() }}</strong> de {{ TIPOS_DOC.length }} documentos validados
+              </span>
+              <mat-progress-bar class="progreso-bar" mode="determinate"
+                [value]="(docsValidados() / TIPOS_DOC.length) * 100"
+                [color]="docsValidados() === TIPOS_DOC.length ? 'primary' : 'accent'" />
+            </div>
+          </div>
+
           @if (loadingDocs()) {
             <div class="loading-center">
               <mat-spinner diameter="40" />
             </div>
-          } @else if (!documentos().length) {
-            <div class="empty-state">
-              <mat-icon>folder_off</mat-icon>
-              <p>No hay documentos registrados.</p>
-            </div>
           } @else {
             <div class="docs-grid">
-              @for (doc of documentos(); track doc.id) {
-                <mat-card class="doc-card">
-                  <mat-card-content>
-                    <div class="doc-icon-wrap">
-                      <mat-icon class="doc-icon">
-                        {{ doc.contentType.includes('pdf') ? 'picture_as_pdf' : 'image' }}
-                      </mat-icon>
-                    </div>
-                    <div class="doc-info">
-                      <div class="doc-tipo">{{ labelTipo(doc.tipo) }}</div>
-                      <div class="doc-nombre">{{ doc.nombreArchivo }}</div>
-                    </div>
-                    <div class="doc-estado" [class]="'estado-' + doc.estado.toLowerCase()">
-                      <mat-icon>
-                        {{ doc.estado === 'VALIDADO' ? 'check_circle' :
-                           doc.estado === 'RESUBIR'  ? 'error' : 'hourglass_empty' }}
-                      </mat-icon>
-                      {{ doc.estado === 'VALIDADO' ? 'Validado' :
-                         doc.estado === 'RESUBIR'  ? 'Resubir' : 'Pendiente' }}
+              @for (item of TIPOS_DOC; track item.tipo) {
+                @let doc = docPorTipo(item.tipo);
+                @let subiendo = subiendoDocs().has(item.tipo);
+                <mat-card class="doc-card-v2"
+                          [class.doc-card-validado]="doc?.estado === 'VALIDADO'"
+                          [class.doc-card-rechazado]="doc?.estado === 'RECHAZADO'"
+                          [class.doc-card-subido]="doc?.estado === 'SUBIDO'">
+                  <mat-card-content class="doc-card-body">
+
+                    <div class="doc-v2-top">
+                      <div class="doc-v2-icon-wrap">
+                        <mat-icon class="doc-v2-icon">{{ item.icono }}</mat-icon>
+                      </div>
+                      <div class="doc-v2-estado">
+                        @if (!doc) {
+                          <span class="doc-chip chip-sin-subir">Sin subir</span>
+                        } @else if (doc.estado === 'VALIDADO') {
+                          <span class="doc-chip chip-validado">
+                            <mat-icon>check_circle</mat-icon> Validado
+                          </span>
+                        } @else if (doc.estado === 'RECHAZADO') {
+                          <span class="doc-chip chip-rechazado">
+                            <mat-icon>error</mat-icon> Rechazado
+                          </span>
+                        } @else {
+                          <span class="doc-chip chip-subido">
+                            <mat-icon>hourglass_empty</mat-icon> En revisión
+                          </span>
+                        }
+                      </div>
                     </div>
 
-                    <!-- hidden file input for re-upload -->
-                    <input #fileInput type="file" accept="image/*,application/pdf"
-                           class="file-input-hidden"
-                           (change)="onArchivoSeleccionado($event, doc)" />
+                    <div class="doc-v2-label">{{ item.label }}</div>
 
-                    <!-- re-upload button: enabled only when RESUBIR -->
-                    @if (subiendoId() === doc.id) {
-                      <mat-spinner diameter="24" class="upload-spinner" />
-                    } @else {
-                      <button mat-icon-button class="resubir-btn"
-                              [disabled]="doc.estado !== 'RESUBIR'"
-                              (click)="abrirSelectorArchivo(fileInput)"
-                              [title]="doc.estado === 'RESUBIR' ? 'Subir nuevo archivo' :
-                                       doc.estado === 'VALIDADO' ? 'Documento aprobado' : 'En revisión'">
-                        <mat-icon>upload_file</mat-icon>
-                      </button>
+                    @if (doc?.motivoRechazo) {
+                      <div class="doc-v2-motivo">
+                        <mat-icon>info</mat-icon> {{ doc!.motivoRechazo }}
+                      </div>
                     }
 
-                    <button mat-icon-button class="ver-btn" (click)="verDocumento(doc)" title="Ver documento">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
+                    <div class="doc-v2-acciones">
+                      @if (doc?.archivoUrl) {
+                        <button mat-icon-button (click)="verDocumento(doc!)"
+                                matTooltip="Ver documento" color="primary">
+                          <mat-icon>open_in_new</mat-icon>
+                        </button>
+                      }
+                      @if (doc?.estado !== 'VALIDADO') {
+                        <button mat-stroked-button class="btn-subir-doc"
+                                [color]="doc?.estado === 'RECHAZADO' ? 'warn' : 'primary'"
+                                [disabled]="subiendo"
+                                (click)="iniciarUpload(item.tipo, docFileInput)">
+                          @if (subiendo) {
+                            <mat-spinner diameter="16" />
+                          } @else {
+                            <mat-icon>{{ doc ? 'upload' : 'cloud_upload' }}</mat-icon>
+                            {{ doc ? 'Reemplazar' : 'Subir' }}
+                          }
+                        </button>
+                      }
+                    </div>
+
                   </mat-card-content>
                 </mat-card>
               }
-            </div>
-
-            <!-- Leyenda -->
-            <div class="leyenda">
-              <span class="estado-pendiente"><mat-icon>hourglass_empty</mat-icon> Pendiente de revisión</span>
-              <span class="estado-validado"><mat-icon>check_circle</mat-icon> Aprobado</span>
-              <span class="estado-resubir"><mat-icon>error</mat-icon> Debe resubirse</span>
             </div>
           }
         </div>

@@ -1,13 +1,24 @@
+// ── Generic ───────────────────────────────────────────────────────────────────
 export interface ApiResponse<T = unknown> {
   mensaje: string;
   data: T;
 }
 
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
 export interface LoginResponse {
   token: string;
   username: string;
   rol: string;
   status: boolean | null;
+  mustChangePassword: boolean;
 }
 
 export interface RegistroRequest {
@@ -18,11 +29,87 @@ export interface RegistroRequest {
   password: string;
 }
 
-export interface Carrera {
+// ── Enums ─────────────────────────────────────────────────────────────────────
+export type EstadoPreinscripcion = 'PENDIENTE' | 'EN_REVISION' | 'HABILITADO' | 'RECHAZADO';
+export type EstadoPago           = 'SIN_PAGO'  | 'PARCIAL'    | 'COMPLETO';
+export type EstadoDocumento      = 'PENDIENTE' | 'SUBIDO'     | 'VALIDADO'  | 'RECHAZADO';
+export type TipoDocumento =
+  | 'DNI_FRENTE' | 'DNI_DORSO' | 'TITULO'
+  | 'ACTA_NACIMIENTO' | 'PSICOFISICO' | 'BUENA_CONDUCTA' | 'FOTO_CARNET';
+
+// ── Pago / Checklist ──────────────────────────────────────────────────────────
+export interface PagoResponse {
   id: number;
-  nombre: string;
+  estado: EstadoPago;
+  montoTotal: number | null;
+  montoAbonado: number;
+  fechaUltimoPago: string | null;
 }
 
+export interface DocumentoChecklistResponse {
+  id: number;
+  tipoDocumento: TipoDocumento;
+  presentado: boolean;
+  fechaPresentacion: string | null;
+}
+
+// ── Preinscripción ────────────────────────────────────────────────────────────
+export interface CarreraRef { id: number; nombre: string; }
+
+export interface Preinscripcion {
+  id: number;
+  codigoFormulario: string;
+  nombre: string;
+  apellido: string;
+  dni: string;
+  email: string;
+  telefono: string | null;
+  direccion: string | null;
+  localidad: string | null;
+  fechaNacimiento: string | null;
+  lugarNacimiento: string | null;
+  nacionalidad: string | null;
+  fotoUrl: string | null;
+  carrera: CarreraRef | null;
+  estado: EstadoPreinscripcion;
+  fechaCreacion: string;
+  alumno: { id: number } | null;
+}
+
+export interface PreinscripcionDetalle {
+  id: number;
+  codigoFormulario: string;
+  nombre: string;
+  apellido: string;
+  dni: string;
+  email: string;
+  telefono: string | null;
+  direccion: string | null;
+  localidad: string | null;
+  fechaNacimiento: string | null;
+  lugarNacimiento: string | null;
+  nacionalidad: string | null;
+  fotoUrl: string | null;
+  carreraNombre: string | null;
+  carreraId: number | null;
+  estado: EstadoPreinscripcion;
+  fechaCreacion: string;
+  alumnoId: number | null;
+  pago: PagoResponse | null;
+  checklist: DocumentoChecklistResponse[];
+}
+
+// ── Turno ─────────────────────────────────────────────────────────────────────
+export interface TurnoResponse {
+  id: number;
+  numeroTurno: string;
+  horaAsignada: string;
+  fechaTurno: string;
+  confirmado: boolean;
+  carreraNombre: string | null;
+}
+
+// ── Perfil / Documentos digitales ─────────────────────────────────────────────
 export interface PerfilResponse {
   nombres: string;
   apellidos: string;
@@ -34,117 +121,28 @@ export interface PerfilResponse {
   status: boolean;
 }
 
-export type EstadoDocumento = 'PENDIENTE' | 'VALIDADO' | 'RESUBIR';
-export type TipoDocumento = 'DNI_FRENTE' | 'DNI_DORSO' | 'TITULO' | 'FOTO_CARNET' | 'COMPROBANTE_PAGO';
-export type EstadoPreinscripcion =
-  'ENVIADA' | 'PENDIENTE_PAGO' | 'PAGO_VALIDADO' | 'DOCUMENTOS_COMPLETOS' | 'APROBADA' | 'EXPIRADA';
-
 export interface DocumentoResumen {
   id: number;
-  preinscripcionId: number;
-  tipo: TipoDocumento;
-  nombreArchivo: string;
-  contentType: string;
+  tipoDocumento: TipoDocumento;
+  archivoUrl: string | null;
   estado: EstadoDocumento;
+  motivoRechazo: string | null;
 }
 
-export interface CarreraRef {
-  id: number;
-  nombre: string;
-}
+// ── Carrera / Materia ─────────────────────────────────────────────────────────
+export interface Carrera { id: number; nombre: string; }
 
-export interface Preinscripcion {
-  id: number;
-  nombre: string;
-  apellido: string;
-  dni: string;
-  email: string;
-  telefono: string | null;
-  direccion: string | null;
-  localidad: string | null;
-  fechaNacimiento: string | null;
-  lugarNacimiento: string | null;
-  nacionalidad: string | null;
-  egresadoDe: string | null;
-  tituloDe: string | null;
-  debeMaterias: boolean | null;
-  materiasAdeudadas: string | null;
-  afeccionEspecifica: string | null;
-  grupoSanguineo: string | null;
-  carrera: CarreraRef | null;
-  documentosCompletos: boolean | null;
-  fechaCreacion: string;
-  estado: EstadoPreinscripcion;
-}
-
-export interface PreinscripcionDetalle {
-  id: number;
-  nombre: string;
-  apellido: string;
-  dni: string;
-  email: string;
-  telefono: string | null;
-  direccion: string | null;
-  localidad: string | null;
-  fechaNacimiento: string | null;
-  lugarNacimiento: string | null;
-  nacionalidad: string | null;
-  egresadoDe: string | null;
-  tituloDe: string | null;
-  debeMaterias: boolean | null;
-  materiasAdeudadas: string | null;
-  afeccionEspecifica: string | null;
-  grupoSanguineo: string | null;
-  carrera: string | null;
-  fechaCreacion: string;
-  estado: EstadoPreinscripcion;
-  documentosCompletos: boolean | null;
-  reqTituloSecundario: boolean | null;
-  reqConstanciaTituloTramite: boolean | null;
-  reqDni: boolean | null;
-  reqFoto: boolean | null;
-  reqActaNacimiento: boolean | null;
-  reqPsicofisico: boolean | null;
-  reqBuenaConducta: boolean | null;
-  documentos: DocumentoResumen[];
-}
-
-export interface AprobarRequest {
-  tituloSecundario: boolean;
-  constanciaTituloTramite: boolean;
-  dni: boolean;
-  foto: boolean;
-  actaNacimiento: boolean;
-  psicofisico: boolean;
-  buenaConducta: boolean;
-}
-
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-}
-
-// ── Carreras admin ────────────────────────────────────────────────
-
-export interface DocenteResumen {
-  id: number;
-  nombres: string;
-  apellidos: string;
-  email: string;
-}
+export interface DocenteResumen { id: number; nombres: string; apellidos: string; email: string; }
 
 export interface MateriaResponse {
   id: number;
   nombre: string;
   descripcion: string | null;
-  diaSemana: string | null;
-  horaInicio: string | null;
-  horaFin: string | null;
-  aula: string | null;
   docente: DocenteResumen | null;
+  diaSemana?: string | null;
+  horaInicio?: string | null;
+  horaFin?: string | null;
+  aula?: string | null;
 }
 
 export interface AnioCarreraResponse {
@@ -153,18 +151,17 @@ export interface AnioCarreraResponse {
   materias: MateriaResponse[];
 }
 
-export interface MateriaDetalleDocente {
+export interface CarreraDetalle {
   id: number;
   nombre: string;
   descripcion: string | null;
-  carreraNombre: string | null;
-  numeroAnio: number;
-  diaSemana: string | null;
-  horaInicio: string | null;
-  horaFin: string | null;
-  aula: string | null;
+  activa: boolean;
+  cupoMaximo: number;
+  prefijoTurno: string | null;
+  anios: AnioCarreraResponse[];
 }
 
+// ── Docentes ──────────────────────────────────────────────────────────────────
 export interface DocenteResponse {
   id: number;
   nombres: string;
@@ -175,23 +172,44 @@ export interface DocenteResponse {
   activo: boolean;
 }
 
-export interface CarreraDetalle {
+export interface MateriaDetalleDocente {
   id: number;
   nombre: string;
   descripcion: string | null;
-  activa: boolean;
-  cupoMaximo: number;
-  anios: AnioCarreraResponse[];
+  carreraNombre: string | null;
+  numeroAnio: number;
+  diaSemana?: string | null;
+  horaInicio?: string | null;
+  horaFin?: string | null;
+  aula?: string | null;
 }
 
-// ── Docente portal ────────────────────────────────────────────────
-
+// ── Docente portal ────────────────────────────────────────────────────────────
 export interface AlumnoPortal {
   id: number;
-  nombre: string;
-  apellido: string;
+  nombres: string;
+  apellidos: string;
   dni: string;
   email: string;
   telefono: string | null;
   carreraNombre: string | null;
+}
+
+// ── Alumnos (ADMIN/SUPER_ADMIN) ──────────────────────────────────────────────
+export interface AlumnoAdmin {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  dni: string;
+  email: string | null;
+  telefono: string | null;
+  habilitado: boolean;
+  carrera: CarreraRef | null;
+}
+
+// ── Usuarios admin (SUPER_ADMIN) ──────────────────────────────────────────────
+export interface UsuarioAdmin {
+  id: number;
+  username: string;
+  rol: { id: number; nombre: string } | null;
 }

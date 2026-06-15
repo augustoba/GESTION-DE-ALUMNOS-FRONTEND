@@ -31,6 +31,10 @@ import { CommonModule } from '@angular/common';
           <mat-label>Cupo máximo (0 = sin límite)</mat-label>
           <input matInput type="number" formControlName="cupoMaximo" min="0" />
         </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Prefijo de turno (Ej: A, B, INF)</mat-label>
+          <input matInput formControlName="prefijoTurno" placeholder="Ej: A" />
+        </mat-form-field>
         <mat-slide-toggle formControlName="activa">Carrera activa</mat-slide-toggle>
       </form>
     </mat-dialog-content>
@@ -54,6 +58,7 @@ export class CarreraFormDialogComponent implements OnInit {
     nombre: ['', Validators.required],
     descripcion: [''],
     cupoMaximo: [0, [Validators.required, Validators.min(0)]],
+    prefijoTurno: [''],
     activa: [true]
   });
 
@@ -65,6 +70,7 @@ export class CarreraFormDialogComponent implements OnInit {
         nombre: this.data.nombre,
         descripcion: this.data.descripcion ?? '',
         cupoMaximo: this.data.cupoMaximo ?? 0,
+        prefijoTurno: this.data.prefijoTurno ?? '',
         activa: this.data.activa ?? true
       });
     }

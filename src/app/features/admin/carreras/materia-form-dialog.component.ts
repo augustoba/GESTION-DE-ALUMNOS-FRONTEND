@@ -41,36 +41,6 @@ import { DocenteResumen } from '../../../core/models/api-response.model';
           </mat-select>
         </mat-form-field>
 
-        <div class="row-2">
-          <mat-form-field appearance="outline">
-            <mat-label>Día</mat-label>
-            <mat-select formControlName="diaSemana">
-              <mat-option value="">—</mat-option>
-              <mat-option value="LUNES">Lunes</mat-option>
-              <mat-option value="MARTES">Martes</mat-option>
-              <mat-option value="MIERCOLES">Miércoles</mat-option>
-              <mat-option value="JUEVES">Jueves</mat-option>
-              <mat-option value="VIERNES">Viernes</mat-option>
-              <mat-option value="SABADO">Sábado</mat-option>
-              <mat-option value="DOMINGO">Domingo</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Hora inicio</mat-label>
-            <input matInput type="time" formControlName="horaInicio" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Hora fin</mat-label>
-            <input matInput type="time" formControlName="horaFin" />
-          </mat-form-field>
-        </div>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Aula</mat-label>
-          <input matInput formControlName="aula" placeholder="Ej: 12, Lab. A" />
-        </mat-form-field>
 
       </form>
     </mat-dialog-content>
@@ -94,11 +64,7 @@ export class MateriaFormDialogComponent implements OnInit {
   form = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: [''],
-    docenteId: [null as number | null],
-    diaSemana: [''],
-    horaInicio: [''],
-    horaFin: [''],
-    aula: ['']
+    docenteId: [null as number | null]
   });
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: { materia: any; docentes: DocenteResumen[] }) {}
@@ -109,11 +75,7 @@ export class MateriaFormDialogComponent implements OnInit {
       this.form.patchValue({
         nombre: m.nombre,
         descripcion: m.descripcion ?? '',
-        docenteId: m.docente?.id ?? null,
-        diaSemana: m.diaSemana ?? '',
-        horaInicio: m.horaInicio ?? '',
-        horaFin: m.horaFin ?? '',
-        aula: m.aula ?? ''
+        docenteId: m.docente?.id ?? null
       });
     }
   }
@@ -124,11 +86,7 @@ export class MateriaFormDialogComponent implements OnInit {
     this.dialogRef.close({
       nombre: val.nombre,
       descripcion: val.descripcion || null,
-      docenteId: val.docenteId || null,
-      diaSemana: val.diaSemana || null,
-      horaInicio: val.horaInicio || null,
-      horaFin: val.horaFin || null,
-      aula: val.aula || null
+      docenteId: val.docenteId || null
     });
   }
 }

@@ -1,0 +1,116 @@
+<div class="page-wrapper">
+  <mat-card class="activar-card">
+
+    <!-- Logo / header -->
+    <div class="card-header">
+      <div class="logo-circle">
+        <mat-icon>school</mat-icon>
+      </div>
+      <h1 class="inst-name">IES Alfredo Coviello</h1>
+    </div>
+
+    <!-- ── Validando token ── -->
+    @if (estado() === 'validando') {
+      <div class="state-center">
+        <mat-spinner diameter="40" />
+        <p class="state-msg">Verificando enlace de activación…</p>
+      </div>
+    }
+
+    <!-- ── Error ── -->
+    @if (estado() === 'error') {
+      <div class="state-center">
+        <div class="icon-circle error-circle">
+          <mat-icon>link_off</mat-icon>
+        </div>
+        <h2 class="state-title">Enlace no válido</h2>
+        <p class="state-msg">{{ errorMsg() }}</p>
+        <a mat-stroked-button routerLink="/login" class="volver-btn">
+          Ir al inicio de sesión
+        </a>
+      </div>
+    }
+
+    <!-- ── Formulario ── -->
+    @if (estado() === 'formulario') {
+      <div class="form-section">
+        <h2 class="form-title">Activá tu cuenta</h2>
+        @if (nombres()) {
+          <p class="form-sub">Hola <strong>{{ nombres() }}</strong>, elegí una contraseña para ingresar al sistema.</p>
+        } @else {
+          <p class="form-sub">Elegí una contraseña para acceder al sistema.</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="activar()" class="pw-form">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nueva contraseña</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput
+                   formControlName="password"
+                   [type]="ocultarPw() ? 'password' : 'text'"
+                   placeholder="Mínimo 8 caracteres" />
+            <button mat-icon-button matSuffix type="button"
+                    (click)="ocultarPw.update(v => !v)"
+                    [attr.aria-label]="ocultarPw() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+              <mat-icon>{{ ocultarPw() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              <mat-error>La contraseña es obligatoria</mat-error>
+            } @else if (form.get('password')?.hasError('minlength')) {
+              <mat-error>Debe tener al menos 8 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirmar contraseña</mat-label>
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <input matInput
+                   formControlName="confirmPassword"
+                   [type]="ocultarCo() ? 'password' : 'text'"
+                   placeholder="Repetí la contraseña" />
+            <button mat-icon-button matSuffix type="button"
+                    (click)="ocultarCo.update(v => !v)"
+                    [attr.aria-label]="ocultarCo() ? 'Mostrar' : 'Ocultar'">
+              <mat-icon>{{ ocultarCo() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            @if (form.hasError('noCoinciden') && form.get('confirmPassword')?.touched) {
+              <mat-error>Las contraseñas no coinciden</mat-error>
+            }
+          </mat-form-field>
+
+          @if (errorMsg()) {
+            <p class="api-error">{{ errorMsg() }}</p>
+          }
+
+          <button mat-flat-button color="primary" type="submit"
+                  class="submit-btn"
+                  [disabled]="form.invalid || enviando()">
+            @if (enviando()) {
+              <mat-spinner diameter="20" class="btn-spinner" />
+            } @else {
+              <mat-icon>check_circle</mat-icon>
+              Activar cuenta
+            }
+          </button>
+        </form>
+      </div>
+    }
+
+    <!-- ── Éxito ── -->
+    @if (estado() === 'exito') {
+      <div class="state-center">
+        <div class="icon-circle success-circle">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h2 class="state-title">¡Cuenta activada!</h2>
+        <p class="state-msg">Tu contraseña fue configurada correctamente.<br/>
+          Serás redirigido al inicio de sesión en unos segundos…</p>
+        <a mat-flat-button color="primary" routerLink="/login" class="volver-btn">
+          Ir al login ahora
+        </a>
+      </div>
+    }
+
+  </mat-card>
+</div>

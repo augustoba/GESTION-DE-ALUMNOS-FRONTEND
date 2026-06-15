@@ -1,25 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, Carrera, DocumentoResumen, PerfilResponse } from '../models/api-response.model';
+import { ApiResponse, Carrera, DocumentoResumen, PerfilResponse, TipoDocumento } from '../models/api-response.model';
 
 export interface PreinscripcionRequest {
-  nombres: string;
-  apellidos: string;
+  nombre: string;
+  apellido: string;
   dni: string;
-  fechaNacimiento: string;
-  lugarNacimiento: string;
-  nacionalidad: string;
-  domicilio: string;
-  localidad: string;
-  telefono: string;
+  fechaNacimiento: string | null;
+  lugarNacimiento: string | null;
+  nacionalidad: string | null;
+  direccion: string | null;
+  localidad: string | null;
+  telefono: string | null;
   email: string;
-  egresadoDe: string;
-  tituloDe: string;
-  debeMaterias: boolean;
-  materiasAdeudadas: string | null;
-  afeccionEspecifica: string | null;
-  grupoSanguineo: string;
+  fotoUrl: string | null;
   carreraId: number | null;
 }
 
@@ -43,18 +38,13 @@ export class PreinscripcionService {
     return this.http.get<ApiResponse<DocumentoResumen[]>>('/api/perfil/documentos');
   }
 
-  getDocumentoBlob(documentoId: number): Observable<Blob> {
-    return this.http.get(`/api/documentos/${documentoId}/descargar`, { responseType: 'blob' });
-  }
-
-  resubirDocumento(preinscripcionId: number, tipo: string, archivo: File): Observable<ApiResponse> {
-    const fd = new FormData();
-    fd.append('tipo', tipo);
-    fd.append('archivo', archivo);
-    return this.http.post<ApiResponse>(`/api/documentos/preinscripcion/${preinscripcionId}`, fd);
-  }
-
   actualizarPerfil(direccion: string, telefono: string): Observable<ApiResponse<PerfilResponse>> {
     return this.http.put<ApiResponse<PerfilResponse>>('/api/perfil', { direccion, telefono });
+  }
+
+  subirDocumento(tipo: TipoDocumento, archivo: File): Observable<ApiResponse<DocumentoResumen>> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<ApiResponse<DocumentoResumen>>(`/api/perfil/documentos/${tipo}`, formData);
   }
 }

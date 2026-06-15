@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { DatePipe, CurrencyPipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -11,19 +11,36 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Observable } from 'rxjs';
 import { AdminService } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
-import { PreinscripcionDetalle } from '../../../core/models/api-response.model';
+import { PreinscripcionDetalle, TipoDocumento } from '../../../core/models/api-response.model';
+
+const TIPOS_DOC: { tipo: TipoDocumento; label: string }[] = [
+  { tipo: 'DNI_FRENTE',      label: 'DNI Frente' },
+  { tipo: 'DNI_DORSO',       label: 'DNI Dorso' },
+  { tipo: 'TITULO',          label: 'Título Secundario' },
+  { tipo: 'ACTA_NACIMIENTO', label: 'Acta de Nacimiento' },
+  { tipo: 'PSICOFISICO',     label: 'Psicofísico' },
+  { tipo: 'BUENA_CONDUCTA',  label: 'Certificado de Buena Conducta' },
+  { tipo: 'FOTO_CARNET',     label: 'Foto Carnet' },
+];
 
 @Component({
   selector: 'app-admin-revision',
   imports: [
-    ReactiveFormsModule,
+    ReactiveFormsModule, DatePipe, CurrencyPipe,
     MatSidenavModule, MatToolbarModule, MatListModule, MatIconModule, MatButtonModule,
-    MatCardModule, MatDividerModule, MatProgressSpinnerModule, MatCheckboxModule, DatePipe
+    MatCardModule, MatDividerModule, MatProgressSpinnerModule, MatCheckboxModule,
+    MatFormFieldModule, MatInputModule, MatProgressBarModule, MatTooltipModule
   ],
   templateUrl: './admin-revision.component.html',
   styleUrl: './admin-revision.component.scss'
@@ -36,79 +53,153 @@ export class AdminRevisionComponent implements OnInit {
   private snackBar     = inject(MatSnackBar);
   private dialog       = inject(MatDialog);
   private fb           = inject(FormBuilder);
+  protected themeService = inject(ThemeService);
 
-  preinscripcion = signal<PreinscripcionDetalle | null>(null);
-  loading        = signal(true);
-  aprobando      = signal(false);
+  preinscripcion  = signal<PreinscripcionDetalle | null>(null);
+  loading         = signal(true);
+  accionando      = signal(false);
+  registrandoPago = signal(false);
+  toggleandoDoc   = signal<TipoDocumento | null>(null);
 
-  requisitosForm = this.fb.group({
-    tituloSecundario:       [false],
-    constanciaTituloTramite:[false],
-    dni:                    [false],
-    foto:                   [false],
-    actaNacimiento:         [false],
-    psicofisico:            [false],
-    buenaConducta:          [false]
+  readonly tiposDoc = TIPOS_DOC;
+
+  pagoForm = this.fb.group({
+    monto: [null as number | null, [Validators.required, Validators.min(1)]]
   });
 
+  get preId(): number { return Number(this.route.snapshot.paramMap.get('id')); }
+
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.adminService.getDetalle(id).subscribe({
-      next: res => {
-        this.preinscripcion.set(res.data);
-        // pre-cargar si ya fue aprobado antes
-        const pre = res.data;
-        this.requisitosForm.patchValue({
-          tituloSecundario:        pre.reqTituloSecundario        ?? false,
-          constanciaTituloTramite: pre.reqConstanciaTituloTramite ?? false,
-          dni:                     pre.reqDni                     ?? false,
-          foto:                    pre.reqFoto                    ?? false,
-          actaNacimiento:          pre.reqActaNacimiento          ?? false,
-          psicofisico:             pre.reqPsicofisico             ?? false,
-          buenaConducta:           pre.reqBuenaConducta           ?? false
-        });
-      },
+    this.cargarDetalle();
+  }
+
+  cargarDetalle(): void {
+    this.loading.set(true);
+    this.adminService.getDetalle(this.preId).subscribe({
+      next: res => this.preinscripcion.set(res.data),
       complete: () => this.loading.set(false),
-      error:    () => this.loading.set(false)
+      error: () => this.loading.set(false)
     });
   }
 
-  aprobar(): void {
+  estaPresente(tipo: TipoDocumento): boolean {
+    return this.preinscripcion()?.checklist.some(c => c.tipoDocumento === tipo && c.presentado) ?? false;
+  }
+
+  toggleDoc(tipo: TipoDocumento): void {
+    if (this.toggleandoDoc()) return;
+    this.toggleandoDoc.set(tipo);
+    const presente = this.estaPresente(tipo);
+    const obs$: Observable<unknown> = presente
+      ? this.adminService.desmarcarDocumento(this.preId, tipo)
+      : this.adminService.marcarDocumento(this.preId, tipo);
+    obs$.subscribe({
+      next: () => { this.toggleandoDoc.set(null); this.cargarDetalle(); },
+      error: () => {
+        this.snackBar.open('Error al actualizar documento.', 'Cerrar', { duration: 3000 });
+        this.toggleandoDoc.set(null);
+      }
+    });
+  }
+
+  registrarPago(): void {
+    if (this.pagoForm.invalid) { this.pagoForm.markAllAsTouched(); return; }
+    this.registrandoPago.set(true);
+    const monto = this.pagoForm.value.monto!;
+    this.adminService.registrarPago(this.preId, { montoAbonado: monto }).subscribe({
+      next: () => {
+        this.snackBar.open('Pago registrado.', 'Cerrar', { duration: 3000 });
+        this.pagoForm.reset();
+        this.cargarDetalle();
+      },
+      error: () => {
+        this.snackBar.open('Error al registrar pago.', 'Cerrar', { duration: 3000 });
+        this.registrandoPago.set(false);
+      },
+      complete: () => this.registrandoPago.set(false)
+    });
+  }
+
+  pasarARevision(): void {
+    this.accionando.set(true);
+    this.adminService.enRevision(this.preId).subscribe({
+      next: res => {
+        this.preinscripcion.update(p => p ? { ...p, estado: res.data.estado } : p);
+        this.snackBar.open('Estado actualizado a En Revisión.', 'Cerrar', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Error al actualizar estado.', 'Cerrar', { duration: 3000 });
+        this.accionando.set(false);
+      },
+      complete: () => this.accionando.set(false)
+    });
+  }
+
+  habilitar(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       width: '440px',
       data: {
-        titulo: '¿Dar de alta al alumno?',
-        mensaje: 'Se registrará qué documentos presentó el alumno y su cuenta quedará activa en el sistema.',
-        confirmLabel: 'Aprobar',
+        titulo: '¿Habilitar como alumno?',
+        mensaje: 'Se creará la cuenta del alumno con una contraseña temporal enviada por email.',
+        confirmLabel: 'Habilitar',
         cancelLabel: 'Cancelar'
       }
     });
-
     ref.afterClosed().subscribe(ok => {
       if (!ok) return;
-      this.aprobando.set(true);
-      const id = this.preinscripcion()!.id;
-      const v  = this.requisitosForm.getRawValue();
-
-      this.adminService.aprobar(id, {
-        tituloSecundario:        !!v.tituloSecundario,
-        constanciaTituloTramite: !!v.constanciaTituloTramite,
-        dni:                     !!v.dni,
-        foto:                    !!v.foto,
-        actaNacimiento:          !!v.actaNacimiento,
-        psicofisico:             !!v.psicofisico,
-        buenaConducta:           !!v.buenaConducta
-      }).subscribe({
+      this.accionando.set(true);
+      this.adminService.habilitar(this.preId).subscribe({
         next: () => {
-          this.snackBar.open('Alumno dado de alta correctamente.', 'Cerrar', { duration: 5000 });
+          this.snackBar.open('Alumno habilitado correctamente.', 'Cerrar', { duration: 5000 });
           this.router.navigate(['/admin/lista']);
         },
         error: () => {
-          this.snackBar.open('Error al aprobar. Intente nuevamente.', 'Cerrar', { duration: 4000 });
-          this.aprobando.set(false);
+          this.snackBar.open('Error al habilitar.', 'Cerrar', { duration: 4000 });
+          this.accionando.set(false);
         }
       });
     });
+  }
+
+  rechazar(): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '440px',
+      data: {
+        titulo: '¿Rechazar preinscripción?',
+        mensaje: 'La preinscripción quedará marcada como rechazada.',
+        confirmLabel: 'Rechazar',
+        cancelLabel: 'Cancelar'
+      }
+    });
+    ref.afterClosed().subscribe(ok => {
+      if (!ok) return;
+      this.accionando.set(true);
+      this.adminService.rechazar(this.preId).subscribe({
+        next: () => {
+          this.snackBar.open('Preinscripción rechazada.', 'Cerrar', { duration: 3000 });
+          this.router.navigate(['/admin/lista']);
+        },
+        error: () => {
+          this.snackBar.open('Error al rechazar.', 'Cerrar', { duration: 4000 });
+          this.accionando.set(false);
+        }
+      });
+    });
+  }
+
+  estadoLabel(e: string): string {
+    const m: Record<string, string> = {
+      PENDIENTE: 'Pendiente', EN_REVISION: 'En revisión',
+      HABILITADO: 'Habilitado', RECHAZADO: 'Rechazado'
+    };
+    return m[e] ?? e;
+  }
+
+  pagoLabel(e: string): string {
+    const m: Record<string, string> = {
+      SIN_PAGO: 'Sin pago', PARCIAL: 'Parcial', COMPLETO: 'Completo'
+    };
+    return m[e] ?? e;
   }
 
   volver():      void { this.router.navigate(['/admin/lista']); }

@@ -1,0 +1,199 @@
+<div class="page">
+  <div class="header">
+    <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="logo" />
+    <h1>Instituto de Enseñanza Superior Alfredo Coviello</h1>
+  </div>
+
+  <mat-card class="card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>event_available</mat-icon>
+      <mat-card-title>Solicitar turno de inscripción</mat-card-title>
+      <mat-card-subtitle>
+        Ingresá tus datos para obtener un turno para la inscripción presencial.
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <!-- Turnos cerrados -->
+      @if (turnosCerrados()) {
+        <div class="cerrado-container">
+          <mat-icon class="cerrado-icon">event_busy</mat-icon>
+          <h2>Solicitud de turnos no disponible</h2>
+          <p>La solicitud de turnos no está habilitada en este momento.<br>
+             Cuando se abra el período recibirás un email con el enlace para solicitar tu turno.</p>
+        </div>
+
+      <!-- Turno asignado con éxito -->
+      } @else if (paso() === 'turno') {
+        <div class="turno-exito">
+          <mat-icon class="check-icon">check_circle</mat-icon>
+          <h2>¡Turno asignado!</h2>
+          <div class="turno-detalle">
+            <div class="turno-numero">{{ turnoObtenido()!.numeroTurno }}</div>
+            <div class="turno-info">
+              <p><mat-icon>calendar_today</mat-icon> {{ turnoObtenido()!.fechaTurno }}</p>
+              <p><mat-icon>access_time</mat-icon> {{ turnoObtenido()!.horaAsignada }}</p>
+              @if (turnoObtenido()!.carreraNombre) {
+                <p><mat-icon>school</mat-icon> {{ turnoObtenido()!.carreraNombre }}</p>
+              }
+            </div>
+          </div>
+          <p class="exito-msg">
+            Te enviamos la confirmación al email que registraste en la preinscripción.<br>
+            Presentate el día indicado en la administración del instituto.
+          </p>
+        </div>
+
+      <!-- Selección de candidato cuando hay múltiples resultados -->
+      } @else if (paso() === 'seleccionando') {
+        <div class="seleccionando-container">
+          <div class="seleccionando-header">
+            <mat-icon>people</mat-icon>
+            <div>
+              <h3>Se encontraron {{ candidatos().length }} coincidencias</h3>
+              <p>Hacé click en tu nombre para solicitar el turno.</p>
+            </div>
+          </div>
+
+          @if (error()) {
+            <div class="error-banner">
+              <mat-icon>error</mat-icon>
+              {{ error() }}
+            </div>
+          }
+
+          <div class="candidatos-lista">
+            @for (c of candidatos(); track c.id) {
+              <button class="candidato-item"
+                      [disabled]="asignando()"
+                      (click)="seleccionar(c)">
+                <div class="candidato-info">
+                  <mat-icon>person</mat-icon>
+                  <div>
+                    <div class="candidato-nombre">{{ c.nombre }} {{ c.apellido }}</div>
+                    <div class="candidato-detalle">
+                      <span>{{ c.codigoFormulario }}</span>
+                      @if (c.carreraNombre) {
+                        <span class="candidato-sep">·</span>
+                        <span>{{ c.carreraNombre }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+                @if (asignando()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <mat-icon class="candidato-arrow">chevron_right</mat-icon>
+                }
+              </button>
+            }
+          </div>
+
+          <button mat-button (click)="volverAlForm()" class="volver-btn">
+            <mat-icon>arrow_back</mat-icon> Volver a la búsqueda
+          </button>
+        </div>
+
+      <!-- Formulario de búsqueda -->
+      } @else {
+        @if (loadingDias()) {
+          <div class="loading-center"><mat-spinner diameter="36" /></div>
+        } @else if (!dias().length) {
+          <div class="sin-dias">
+            <mat-icon>event_busy</mat-icon>
+            <p>No hay días de inscripción activos en este momento.<br>Consultá con la administración.</p>
+          </div>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="onBuscar()" class="form">
+
+            <!-- Selección de día -->
+            <h3 class="section-title">1. Elegí el día</h3>
+            <div class="dias-grid">
+              @for (dia of dias(); track dia.id) {
+                <div class="dia-card"
+                     [class.selected]="form.get('configuracionTurnoId')?.value === dia.id"
+                     [class.sin-cupo]="dia.cupoDisponible === 0"
+                     (click)="dia.cupoDisponible > 0 && form.get('configuracionTurnoId')?.setValue(dia.id)">
+                  <div class="dia-nombre">{{ dia.nombre }}</div>
+                  <div class="dia-fecha">{{ diaLabel(dia) }}</div>
+                  <div class="dia-horario">{{ dia.horarioInicio }} – {{ dia.horarioFin }}</div>
+                  <div class="dia-cupo" [class.cupo-ok]="dia.cupoDisponible > 0" [class.cupo-lleno]="dia.cupoDisponible === 0">
+                    @if (dia.cupoDisponible > 0) {
+                      <mat-icon>event_seat</mat-icon> {{ dia.cupoDisponible }} lugares disponibles
+                    } @else {
+                      <mat-icon>block</mat-icon> Sin cupo
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <mat-divider />
+
+            <!-- Identificación -->
+            <h3 class="section-title">2. Identificate</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>¿Cómo querés identificarte?</mat-label>
+              <mat-select formControlName="tipoBusqueda">
+                <mat-option value="DNI">Por número de DNI</mat-option>
+                <mat-option value="CODIGO">Por N° de formulario</mat-option>
+                <mat-option value="NOMBRE">Por nombre y apellido</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            @if (tipoBusqueda === 'DNI') {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Número de DNI</mat-label>
+                <mat-icon matPrefix>badge</mat-icon>
+                <input matInput formControlName="valor" placeholder="Ej: 40123456" />
+              </mat-form-field>
+            }
+
+            @if (tipoBusqueda === 'CODIGO') {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>N° de formulario</mat-label>
+                <mat-icon matPrefix>confirmation_number</mat-icon>
+                <input matInput formControlName="valor" placeholder="Ej: 5" type="number" />
+                <mat-hint>El número que figura en el formulario impreso</mat-hint>
+              </mat-form-field>
+            }
+
+            @if (tipoBusqueda === 'NOMBRE') {
+              <div class="nombre-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nombre</mat-label>
+                  <input matInput formControlName="nombre" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Apellido</mat-label>
+                  <input matInput formControlName="apellido" />
+                </mat-form-field>
+              </div>
+            }
+
+            @if (error()) {
+              <div class="error-banner">
+                <mat-icon>error</mat-icon>
+                {{ error() }}
+              </div>
+            }
+
+            <button mat-flat-button color="primary" type="submit" class="submit-btn"
+                    [disabled]="buscando() || asignando()">
+              @if (buscando() || asignando()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                <mat-icon>search</mat-icon>
+                Buscar
+              }
+            </button>
+
+          </form>
+        }
+      }
+
+    </mat-card-content>
+  </mat-card>
+</div>

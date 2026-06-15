@@ -1,0 +1,163 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <!-- ── Sidenav ─────────────────────────────────────── -->
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="sidenav-logo" />
+      <span class="sidenav-inst">IES Alfredo Coviello</span>
+    </div>
+
+    <mat-divider />
+
+    <mat-nav-list class="nav-list">
+      <mat-list-item (click)="irAPre()">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Preinscripciones</span>
+      </mat-list-item>
+      <mat-list-item (click)="irACarreras()">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Carreras</span>
+      </mat-list-item>
+      <mat-list-item (click)="irADocentes()">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Docentes</span>
+      </mat-list-item>
+      <mat-list-item (click)="irAAlumnos()">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Alumnos</span>
+      </mat-list-item>
+      <mat-list-item class="active">
+        <mat-icon matListItemIcon>manage_accounts</mat-icon>
+        <span matListItemTitle>Usuarios</span>
+      </mat-list-item>
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <mat-divider />
+      <div class="sidenav-user">
+        <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
+        <div class="user-name-text">
+          <span class="user-nombre">Super Administrador</span>
+          <span class="user-rol">Super Admin</span>
+        </div>
+      </div>
+      <mat-divider />
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon> Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <!-- ── Main content ────────────────────────────────── -->
+  <mat-sidenav-content class="main-content">
+
+    <mat-toolbar class="toolbar">
+      <span class="toolbar-title">Usuarios del sistema</span>
+      <span class="spacer"></span>
+      <button mat-flat-button color="primary" (click)="toggleForm()">
+        <mat-icon>{{ mostrarForm() ? 'close' : 'person_add' }}</mat-icon>
+        {{ mostrarForm() ? 'Cancelar' : 'Nuevo usuario' }}
+      </button>
+    </mat-toolbar>
+
+    <div class="content-area">
+
+      <!-- ── Formulario creación ─── -->
+      @if (mostrarForm()) {
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>person_add</mat-icon>
+            <mat-card-title>Crear usuario</mat-card-title>
+            <mat-card-subtitle>Se enviará un email de bienvenida con las credenciales.</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="crearForm" (ngSubmit)="crear()" class="crear-form">
+
+              <mat-form-field appearance="outline">
+                <mat-label>Email (será el nombre de usuario)</mat-label>
+                <input matInput formControlName="username" type="email" />
+                @if (crearForm.get('username')?.invalid && crearForm.get('username')?.touched) {
+                  <mat-error>Email requerido y válido</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Contraseña temporal</mat-label>
+                <input matInput formControlName="password" type="password" />
+                @if (crearForm.get('password')?.invalid && crearForm.get('password')?.touched) {
+                  <mat-error>Mínimo 6 caracteres</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Rol</mat-label>
+                <mat-select formControlName="rol">
+                  <mat-option value="ADMIN">Administrador</mat-option>
+                  <mat-option value="DOCENTE">Docente</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-button type="button" (click)="toggleForm()">Cancelar</button>
+                <button mat-flat-button color="primary" type="submit" [disabled]="creando()">
+                  @if (creando()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                    Crear usuario
+                  }
+                </button>
+              </div>
+
+            </form>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- ── Tabla ─── -->
+      @if (loading()) {
+        <div class="loading-center">
+          <mat-spinner diameter="48" />
+        </div>
+      } @else if (!usuarios().length) {
+        <div class="empty-state">
+          <mat-icon>manage_accounts</mat-icon>
+          <p>No hay usuarios administradores registrados.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="usuarios()" class="data-table">
+
+            <ng-container matColumnDef="username">
+              <th mat-header-cell *matHeaderCellDef>Email / Usuario</th>
+              <td mat-cell *matCellDef="let row">{{ row.username }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="rol">
+              <th mat-header-cell *matHeaderCellDef>Rol</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="rol-chip">{{ row.rol?.nombre ?? '—' }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                @if (row.rol?.nombre !== 'SUPER_ADMIN') {
+                  <button mat-stroked-button color="warn" (click)="desactivar(row)">
+                    <mat-icon>person_off</mat-icon>
+                    Desactivar
+                  </button>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+          </table>
+        </div>
+      }
+
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

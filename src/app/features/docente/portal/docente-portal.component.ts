@@ -64,7 +64,7 @@ export class DocentePortalComponent implements OnInit {
     const q = this.busqueda().toLowerCase();
     if (!q) return this.alumnos();
     return this.alumnos().filter(a =>
-      `${a.nombre} ${a.apellido}`.toLowerCase().includes(q) ||
+      `${a.nombres} ${a.apellidos}`.toLowerCase().includes(q) ||
       a.dni.includes(q)
     );
   });

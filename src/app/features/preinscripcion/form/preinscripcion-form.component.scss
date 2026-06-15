@@ -409,3 +409,32 @@
     padding-left: 20px;
   }
 }
+
+.cerrado-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px;
+  text-align: center;
+
+  .cerrado-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--color-warn, #f44336);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--color-text);
+  }
+
+  p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+}

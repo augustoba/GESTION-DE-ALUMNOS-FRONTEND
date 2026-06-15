@@ -69,10 +69,11 @@
         </form>
       </mat-card-content>
 
-      <mat-card-actions class="centered-actions">
-        <span>¿Primera vez en el sistema?</span>
-        <a mat-button routerLink="/registro">Registrate aquí</a>
-      </mat-card-actions>
+      @if (preinscripcionHabilitada()) {
+        <mat-card-actions class="centered-actions">
+          <a mat-button routerLink="/preinscripcion">Formulario de preinscripción</a>
+        </mat-card-actions>
+      }
     } @else {
       <mat-card-header>
         <mat-card-title>Recuperar contraseña</mat-card-title>

@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
+import { ApiResponse } from '../../../core/models/api-response.model';
 
 @Component({
   selector: 'app-login',
@@ -24,13 +26,15 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
-  private fb = inject(FormBuilder);
+export class LoginComponent implements OnInit {
+  private fb          = inject(FormBuilder);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  private router      = inject(Router);
+  private http        = inject(HttpClient);
 
   loading = signal(false);
-  error = signal('');
+  error   = signal('');
+  preinscripcionHabilitada = signal(false);
   hidePassword = signal(true);
 
   showForgotPassword = signal(false);
@@ -47,6 +51,12 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]]
   });
 
+  ngOnInit(): void {
+    this.http.get<ApiResponse<{ habilitada: boolean }>>('/api/configuracion/preinscripcion').subscribe({
+      next: res => this.preinscripcionHabilitada.set(res.data?.habilitada ?? false)
+    });
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
     this.loading.set(true);
@@ -56,8 +66,12 @@ export class LoginComponent {
 
     this.authService.login(username!, password!).subscribe({
       next: (res) => {
-        const { rol, status } = res.data;
-        if (rol === 'ADMIN') {
+        const { rol, status, mustChangePassword } = res.data;
+        if (mustChangePassword) {
+          this.router.navigate(['/cambiar-password']);
+          return;
+        }
+        if (rol === 'SUPER_ADMIN' || rol === 'ADMIN') {
           this.router.navigate(['/admin/lista']);
         } else if (rol === 'DOCENTE') {
           this.router.navigate(['/docente/portal']);

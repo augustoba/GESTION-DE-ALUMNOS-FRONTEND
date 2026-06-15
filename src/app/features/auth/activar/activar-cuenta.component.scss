@@ -1,0 +1,164 @@
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #005f7a 0%, #003d52 100%);
+  padding: 24px 16px;
+}
+
+.activar-card {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25) !important;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 32px 20px;
+  background: linear-gradient(135deg, #005f7a 0%, #009DC9 100%);
+}
+
+.logo-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
+  mat-icon {
+    font-size: 32px;
+    height: 32px;
+    width: 32px;
+    color: #fff;
+  }
+}
+
+.inst-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Shared states ───────────────────────────────── */
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 36px 32px 40px;
+  text-align: center;
+}
+
+.state-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #212121;
+  margin: 0;
+}
+
+.state-msg {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Icon circles ────────────────────────────────── */
+.icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 36px;
+    height: 36px;
+    width: 36px;
+  }
+}
+
+.success-circle {
+  background: rgba(34, 197, 94, 0.12);
+  mat-icon { color: #22C55E; }
+}
+
+.error-circle {
+  background: rgba(239, 68, 68, 0.10);
+  mat-icon { color: #EF4444; }
+}
+
+/* ── Form section ────────────────────────────────── */
+.form-section {
+  padding: 28px 32px 36px;
+}
+
+.form-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #003d52;
+  margin: 0 0 6px;
+}
+
+.form-sub {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.api-error {
+  font-size: 0.82rem;
+  color: #C62828;
+  background: rgba(198, 40, 40, 0.06);
+  border-left: 3px solid #EF9A9A;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 4px 0;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  height: 46px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  display: inline-flex;
+}
+
+.volver-btn {
+  margin-top: 4px;
+  min-width: 200px;
+}

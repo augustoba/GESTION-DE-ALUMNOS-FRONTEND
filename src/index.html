@@ -10,6 +10,12 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+  <script>
+    (function(){
+      var t = localStorage.getItem('ga_theme');
+      if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+    })();
+  </script>
   <app-root></app-root>
 </body>
 </html>
