@@ -850,3 +850,220 @@ mat-card-header {
   gap: 8px;
   margin-top: 4px;
 }
+
+/* ── Carrera tag en inicio ──────────────────────────── */
+.carrera-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin: -16px 0 24px;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+/* ── Perfil: carrera en hero ────────────────────────── */
+.perfil-carrera-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+
+  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+}
+
+/* ── Materias: real data ────────────────────────────── */
+.asist-detalle {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.asist-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+  &.presentes { color: #16a34a; mat-icon { color: #16a34a; } }
+  &.ausentes  { color: #dc2626; mat-icon { color: #dc2626; } }
+}
+
+.chip-cursando { background: #dcfce7; color: #166534; }
+.chip-libre    { background: #fee2e2; color: #991b1b; }
+
+/* ── Empty state ────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 0;
+  gap: 10px;
+  color: var(--color-text-subtle, #94a3b8);
+  text-align: center;
+
+  mat-icon { font-size: 52px; width: 52px; height: 52px; }
+  p { margin: 0; font-size: 0.95rem; font-weight: 600; }
+  span { font-size: 0.8rem; }
+}
+
+/* ══ HORARIO / CALENDARIO ═══════════════════════════════ */
+.section-horario {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 680px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cal-month-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-darker);
+  text-transform: capitalize;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg, 14px);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cal-header-cell {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-subtle, #94a3b8);
+  text-transform: uppercase;
+  padding: 6px 0;
+  letter-spacing: 0.06em;
+}
+
+.cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: default;
+  position: relative;
+  gap: 3px;
+  transition: background var(--transition-fast, 0.15s);
+
+  &.cal-has-clase {
+    cursor: pointer;
+    &:hover { background: var(--color-primary-light); }
+  }
+
+  &.cal-today .cal-day-num {
+    background: var(--color-primary-darker);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  &.cal-selected {
+    background: var(--color-accent) !important;
+
+    .cal-day-num { color: #fff; font-weight: 700; }
+    .cal-dot { background: #fff; }
+  }
+}
+
+.cal-day-num {
+  font-size: 0.83rem;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* ── Panel día seleccionado ─────────────────────────── */
+.cal-detail-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg, 14px);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cal-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-primary-darker);
+  margin-bottom: 16px;
+  text-transform: capitalize;
+
+  mat-icon { color: var(--color-accent); }
+}
+
+.cal-clases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cal-clase-item {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--color-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cal-clase-nombre {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-primary-darker);
+}
+
+.cal-clase-horario,
+.cal-clase-aula {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-subtle, #64748b);
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, Carrera, DocumentoResumen, PerfilResponse, TipoDocumento } from '../models/api-response.model';
+import { ApiResponse, AsistenciaAlumnoResumen, Carrera, DocumentoResumen, HorarioAlumnoItem, PerfilResponse, TipoDocumento } from '../models/api-response.model';
 
 export interface PreinscripcionRequest {
   nombre: string;
@@ -46,5 +46,13 @@ export class PreinscripcionService {
     const formData = new FormData();
     formData.append('archivo', archivo);
     return this.http.post<ApiResponse<DocumentoResumen>>(`/api/perfil/documentos/${tipo}`, formData);
+  }
+
+  getHorarios(): Observable<ApiResponse<HorarioAlumnoItem[]>> {
+    return this.http.get<ApiResponse<HorarioAlumnoItem[]>>('/api/perfil/horarios');
+  }
+
+  getAsistenciasResumen(): Observable<ApiResponse<AsistenciaAlumnoResumen[]>> {
+    return this.http.get<ApiResponse<AsistenciaAlumnoResumen[]>>('/api/perfil/asistencias-resumen');
   }
 }

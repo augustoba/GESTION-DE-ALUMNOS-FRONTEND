@@ -81,6 +81,11 @@ export const routes: Routes = [
           import('./features/admin/alumnos/admin-alumnos.component').then(m => m.AdminAlumnosComponent)
       },
       {
+        path: 'alumnos/:id',
+        loadComponent: () =>
+          import('./features/admin/alumnos/admin-alumno-detalle.component').then(m => m.AdminAlumnoDetalleComponent)
+      },
+      {
         path: 'usuarios',
         canActivate: [superAdminGuard],
         loadComponent: () =>

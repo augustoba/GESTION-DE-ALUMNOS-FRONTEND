@@ -22,6 +22,7 @@ import { AdminService } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { ComisionSelectorDialogComponent } from '../../../shared/comision-selector-dialog/comision-selector-dialog.component';
 import { PreinscripcionDetalle, TipoDocumento } from '../../../core/models/api-response.model';
 
 const TIPOS_DOC: { tipo: TipoDocumento; label: string }[] = [
@@ -136,28 +137,39 @@ export class AdminRevisionComponent implements OnInit {
   }
 
   habilitar(): void {
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '440px',
-      data: {
-        titulo: '¿Habilitar como alumno?',
-        mensaje: 'Se creará la cuenta del alumno con una contraseña temporal enviada por email.',
-        confirmLabel: 'Habilitar',
-        cancelLabel: 'Cancelar'
+    const pre = this.preinscripcion();
+    if (!pre?.carreraId) {
+      this.snackBar.open('Esta preinscripción no tiene carrera asignada.', 'Cerrar', { duration: 4000 });
+      return;
+    }
+
+    this.accionando.set(true);
+    this.adminService.getCarreraDetalle(pre.carreraId).subscribe({
+      next: res => {
+        this.accionando.set(false);
+        const ref = this.dialog.open(ComisionSelectorDialogComponent, {
+          width: '480px',
+          data: { carreraNombre: res.data.nombre, anios: res.data.anios }
+        });
+        ref.afterClosed().subscribe((comisionId: number | undefined) => {
+          if (!comisionId) return;
+          this.accionando.set(true);
+          this.adminService.habilitar(this.preId, comisionId).subscribe({
+            next: () => {
+              this.snackBar.open('Alumno habilitado correctamente.', 'Cerrar', { duration: 5000 });
+              this.router.navigate(['/admin/lista']);
+            },
+            error: err => {
+              this.snackBar.open(err.error?.mensaje ?? 'Error al habilitar.', 'Cerrar', { duration: 4000 });
+              this.accionando.set(false);
+            }
+          });
+        });
+      },
+      error: () => {
+        this.accionando.set(false);
+        this.snackBar.open('Error al cargar comisiones de la carrera.', 'Cerrar', { duration: 3000 });
       }
-    });
-    ref.afterClosed().subscribe(ok => {
-      if (!ok) return;
-      this.accionando.set(true);
-      this.adminService.habilitar(this.preId).subscribe({
-        next: () => {
-          this.snackBar.open('Alumno habilitado correctamente.', 'Cerrar', { duration: 5000 });
-          this.router.navigate(['/admin/lista']);
-        },
-        error: () => {
-          this.snackBar.open('Error al habilitar.', 'Cerrar', { duration: 4000 });
-          this.accionando.set(false);
-        }
-      });
     });
   }
 

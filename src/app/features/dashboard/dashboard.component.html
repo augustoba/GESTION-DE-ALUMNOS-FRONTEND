@@ -31,7 +31,7 @@
         }
         <div class="user-name-text">
           <span class="user-nombre">{{ perfil()?.nombres }} {{ perfil()?.apellidos }}</span>
-          <span class="user-rol">Alumno</span>
+          <span class="user-rol">{{ perfil()?.carreraNombre ?? 'Alumno' }}</span>
         </div>
       </div>
       <mat-divider />
@@ -44,12 +44,12 @@
   <!-- ── Main content ───────────────────────────────── -->
   <mat-sidenav-content class="main-content">
 
-    <!-- Top toolbar -->
     <mat-toolbar class="toolbar">
       <span class="toolbar-title">
         @switch (activeSection()) {
           @case ('inicio')     { Inicio }
           @case ('materias')   { Mis Materias }
+          @case ('horario')    { Mi Horario }
           @case ('documentos') { Mis Documentos }
           @case ('perfil')     { Mi Perfil }
         }
@@ -62,30 +62,42 @@
       </button>
     </mat-toolbar>
 
-    <!-- Content area -->
     <div class="content-area">
 
       <!-- ══ INICIO ══════════════════════════════════ -->
       @if (activeSection() === 'inicio') {
         <div class="section-inicio">
-          <h2 class="welcome">
-            ¡Bienvenido/a, {{ perfil()?.nombres }}!
-          </h2>
+          <h2 class="welcome">¡Bienvenido/a, {{ perfil()?.nombres }}!</h2>
+          @if (perfil()?.carreraNombre) {
+            <p class="carrera-tag">
+              <mat-icon>school</mat-icon>
+              {{ perfil()!.carreraNombre }}
+              @if (perfil()!.anioNumero) { — {{ perfil()!.anioNumero }}° año }
+              @if (perfil()!.comisionNombre) { — Comisión {{ perfil()!.comisionNombre }} }
+            </p>
+          }
 
-          <!-- Summary cards -->
           <div class="stats-grid">
             <mat-card class="stat-card">
               <mat-card-content>
                 <mat-icon class="stat-icon primary">school</mat-icon>
-                <div class="stat-value">{{ regulares() }}</div>
-                <div class="stat-label">Materias regulares</div>
+                @if (loadingAsist()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <div class="stat-value">{{ cursando() }}</div>
+                }
+                <div class="stat-label">Materias cursando</div>
               </mat-card-content>
             </mat-card>
 
             <mat-card class="stat-card warn">
               <mat-card-content>
                 <mat-icon class="stat-icon warn">cancel</mat-icon>
-                <div class="stat-value">{{ libres() }}</div>
+                @if (loadingAsist()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <div class="stat-value">{{ libres() }}</div>
+                }
                 <div class="stat-label">Materias libres</div>
               </mat-card-content>
             </mat-card>
@@ -93,7 +105,11 @@
             <mat-card class="stat-card accent">
               <mat-card-content>
                 <mat-icon class="stat-icon accent">bar_chart</mat-icon>
-                <div class="stat-value">{{ promAsist() | number:'1.0-0' }}%</div>
+                @if (loadingAsist()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <div class="stat-value">{{ promAsist() | number:'1.0-0' }}%</div>
+                }
                 <div class="stat-label">Asistencia promedio</div>
               </mat-card-content>
             </mat-card>
@@ -107,7 +123,6 @@
             </mat-card>
           </div>
 
-          <!-- Accesos rápidos -->
           <h3 class="section-subtitle">Accesos rápidos</h3>
           <div class="quick-access">
             @for (item of navItems.slice(1); track item.section) {
@@ -125,64 +140,129 @@
       <!-- ══ MATERIAS ════════════════════════════════ -->
       @if (activeSection() === 'materias') {
         <div class="section-materias">
-          <p class="demo-notice">
-            <mat-icon>info</mat-icon>
-            Los datos de materias son de ejemplo. Se conectarán al sistema académico cuando esté disponible.
-          </p>
+          @if (loadingAsist()) {
+            <div class="loading-center"><mat-spinner diameter="48" /></div>
+          } @else if (!asistencias().length) {
+            <div class="empty-state">
+              <mat-icon>school</mat-icon>
+              <p>No tenés materias inscriptas confirmadas aún.</p>
+              <span>Cuando la administración confirme tus inscripciones aparecerán aquí.</span>
+            </div>
+          } @else {
+            <div class="materias-grid">
+              @for (a of asistencias(); track a.materiaId) {
+                <mat-card class="materia-card">
+                  <mat-card-header>
+                    <mat-card-title class="materia-nombre">{{ a.materiaNombre }}</mat-card-title>
+                    <div class="condicion-chip" [class]="a.libre ? 'chip-libre' : 'chip-cursando'">
+                      {{ a.libre ? 'Libre' : 'Cursando' }}
+                    </div>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="materia-stat">
+                      <span class="stat-name">
+                        <mat-icon>event_available</mat-icon> Asistencia
+                      </span>
+                      <span class="stat-pct" [class.warn-text]="a.libre">
+                        {{ a.porcentajeAsistencia | number:'1.0-0' }}%
+                      </span>
+                    </div>
+                    <mat-progress-bar
+                      [value]="a.porcentajeAsistencia"
+                      [color]="a.libre ? 'warn' : 'primary'"
+                      class="asist-bar"
+                    />
+                    <div class="asist-detalle">
+                      <span class="asist-item presentes">
+                        <mat-icon>check_circle</mat-icon>
+                        {{ a.presentes + a.tardanzas }} presentes
+                      </span>
+                      <span class="asist-item ausentes">
+                        <mat-icon>cancel</mat-icon>
+                        {{ a.ausentes }} ausentes
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              }
+            </div>
+          }
+        </div>
+      }
 
-          @for (anio of anios; track anio) {
-            @if (materiasDeAnio(anio); as lista) {
-              @if (lista.length) {
-                <h3 class="año-titulo">{{ anio }}° Año</h3>
-                <div class="materias-grid">
-                  @for (m of lista; track m.nombre) {
-                    <mat-card class="materia-card">
-                      <mat-card-header>
-                        <mat-card-title class="materia-nombre">{{ m.nombre }}</mat-card-title>
-                        <div class="condicion-chip" [class]="'chip-' + m.condicion.toLowerCase()">
-                          {{ m.condicion }}
-                        </div>
-                      </mat-card-header>
-                      <mat-card-content>
-                        <!-- Asistencia -->
-                        <div class="materia-stat">
-                          <span class="stat-name">
-                            <mat-icon>event_available</mat-icon> Asistencia
-                          </span>
-                          <span class="stat-pct" [class.warn-text]="m.asistencia < 75">
-                            {{ m.asistencia }}%
-                          </span>
-                        </div>
-                        <mat-progress-bar
-                          [value]="m.asistencia"
-                          [color]="m.asistencia < 75 ? 'warn' : 'primary'"
-                          class="asist-bar"
-                        />
+      <!-- ══ HORARIO / CALENDARIO ════════════════════ -->
+      @if (activeSection() === 'horario') {
+        <div class="section-horario">
+          @if (loadingHorarios()) {
+            <div class="loading-center"><mat-spinner diameter="48" /></div>
+          } @else if (!horarios().length) {
+            <div class="empty-state">
+              <mat-icon>event_busy</mat-icon>
+              <p>No tenés materias con horario asignado aún.</p>
+              <span>Las materias confirmadas con horario aparecerán en el calendario.</span>
+            </div>
+          } @else {
 
-                        <!-- Promedio -->
-                        @if (m.notas.length) {
-                          <div class="materia-stat top-gap">
-                            <span class="stat-name">
-                              <mat-icon>grade</mat-icon> Promedio
-                            </span>
-                            <span class="stat-pct">
-                              {{ promedio(m.notas) | number:'1.1-1' }}
-                            </span>
-                          </div>
-                          <div class="notas-row">
-                            @for (n of m.notas; track $index) {
-                              <span class="nota-chip" [class.nota-baja]="n < 6">{{ n }}</span>
-                            }
-                          </div>
-                        } @else {
-                          <p class="sin-notas">Sin notas aún</p>
-                        }
-                      </mat-card-content>
-                    </mat-card>
+            <!-- Navegación de mes -->
+            <div class="cal-nav">
+              <button mat-icon-button (click)="prevMonth()">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <span class="cal-month-label">{{ calendarMonthLabel() }}</span>
+              <button mat-icon-button (click)="nextMonth()">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+
+            <!-- Grilla del calendario -->
+            <div class="cal-grid">
+              @for (day of ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']; track day) {
+                <div class="cal-header-cell">{{ day }}</div>
+              }
+              @for (cell of calendarDays(); track $index) {
+                <div class="cal-cell"
+                     [class.cal-empty]="!cell.date"
+                     [class.cal-has-clase]="cell.horariosDia.length > 0"
+                     [class.cal-selected]="selectedDay()?.date?.getTime() === cell.date?.getTime()"
+                     [class.cal-today]="isToday(cell.date)"
+                     (click)="selectDay(cell)">
+                  @if (cell.date) {
+                    <span class="cal-day-num">{{ cell.date.getDate() }}</span>
+                    @if (cell.horariosDia.length > 0) {
+                      <span class="cal-dot"></span>
+                    }
                   }
                 </div>
               }
+            </div>
+
+            <!-- Panel del día seleccionado -->
+            @if (selectedDay(); as sel) {
+              <div class="cal-detail-panel">
+                <div class="cal-detail-header">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ formatSelectedDate(sel.date) }}</span>
+                </div>
+                <div class="cal-clases-list">
+                  @for (h of sel.horarios; track h.materiaId + h.horaInicio) {
+                    <div class="cal-clase-item">
+                      <div class="cal-clase-nombre">{{ h.materiaNombre }}</div>
+                      <div class="cal-clase-horario">
+                        <mat-icon>schedule</mat-icon>
+                        {{ h.horaInicio }} – {{ h.horaFin }}
+                      </div>
+                      @if (h.aula) {
+                        <div class="cal-clase-aula">
+                          <mat-icon>door_front</mat-icon>
+                          Aula {{ h.aula }}
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
             }
+
           }
         </div>
       }
@@ -190,13 +270,10 @@
       <!-- ══ DOCUMENTOS ══════════════════════════════ -->
       @if (activeSection() === 'documentos') {
         <div class="section-documentos">
-
-          <!-- Input de archivo oculto compartido -->
           <input #docFileInput type="file" hidden
                  accept="image/jpeg,image/png,image/jpg,application/pdf"
                  (change)="onFileSelected($event)">
 
-          <!-- Encabezado con progreso -->
           <div class="docs-header">
             <p class="docs-descripcion">
               Subí una foto o PDF de cada documento. Serán revisados por la administración del instituto.
@@ -213,9 +290,7 @@
           </div>
 
           @if (loadingDocs()) {
-            <div class="loading-center">
-              <mat-spinner diameter="40" />
-            </div>
+            <div class="loading-center"><mat-spinner diameter="40" /></div>
           } @else {
             <div class="docs-grid">
               @for (item of TIPOS_DOC; track item.tipo) {
@@ -226,7 +301,6 @@
                           [class.doc-card-rechazado]="doc?.estado === 'RECHAZADO'"
                           [class.doc-card-subido]="doc?.estado === 'SUBIDO'">
                   <mat-card-content class="doc-card-body">
-
                     <div class="doc-v2-top">
                       <div class="doc-v2-icon-wrap">
                         <mat-icon class="doc-v2-icon">{{ item.icono }}</mat-icon>
@@ -249,15 +323,12 @@
                         }
                       </div>
                     </div>
-
                     <div class="doc-v2-label">{{ item.label }}</div>
-
                     @if (doc?.motivoRechazo) {
                       <div class="doc-v2-motivo">
                         <mat-icon>info</mat-icon> {{ doc!.motivoRechazo }}
                       </div>
                     }
-
                     <div class="doc-v2-acciones">
                       @if (doc?.archivoUrl) {
                         <button mat-icon-button (click)="verDocumento(doc!)"
@@ -279,7 +350,6 @@
                         </button>
                       }
                     </div>
-
                   </mat-card-content>
                 </mat-card>
               }
@@ -293,7 +363,6 @@
         <div class="section-perfil">
           @if (perfil(); as p) {
 
-            <!-- Encabezado con avatar -->
             <div class="perfil-hero">
               <div class="perfil-avatar-wrap">
                 @if (fotoCarnetUrl()) {
@@ -305,16 +374,19 @@
               <div class="perfil-hero-info">
                 <h2 class="perfil-nombre">{{ p.nombres }} {{ p.apellidos }}</h2>
                 <span class="perfil-email-hero">{{ p.email }}</span>
+                @if (p.carreraNombre) {
+                  <span class="perfil-carrera-hero">
+                    <mat-icon>school</mat-icon> {{ p.carreraNombre }}
+                  </span>
+                }
                 <span class="estado-validado perfil-estado">
                   <mat-icon>check_circle</mat-icon> Alumno activo
                 </span>
               </div>
             </div>
 
-            <!-- Grid de datos -->
             <div class="perfil-grid">
 
-              <!-- Card datos personales (solo lectura) -->
               <mat-card class="perfil-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar>person</mat-icon>
@@ -329,6 +401,27 @@
                       <div class="field-value">{{ p.dni || '—' }}</div>
                     </div>
                   </div>
+                  @if (p.carreraNombre) {
+                    <div class="perfil-field">
+                      <mat-icon>school</mat-icon>
+                      <div>
+                        <div class="field-label">Carrera</div>
+                        <div class="field-value">{{ p.carreraNombre }}</div>
+                      </div>
+                    </div>
+                  }
+                  @if (p.anioNumero || p.comisionNombre) {
+                    <div class="perfil-field">
+                      <mat-icon>group</mat-icon>
+                      <div>
+                        <div class="field-label">Sección</div>
+                        <div class="field-value">
+                          @if (p.anioNumero) { {{ p.anioNumero }}° año }
+                          @if (p.comisionNombre) { — Comisión {{ p.comisionNombre }} }
+                        </div>
+                      </div>
+                    </div>
+                  }
                   @if (p.fechaNac) {
                     <div class="perfil-field">
                       <mat-icon>cake</mat-icon>
@@ -341,7 +434,6 @@
                 </mat-card-content>
               </mat-card>
 
-              <!-- Card datos de contacto (editables) -->
               <mat-card class="perfil-card">
                 <mat-card-header>
                   <mat-icon mat-card-avatar>contacts</mat-icon>
@@ -354,8 +446,6 @@
                 </mat-card-header>
                 <mat-divider />
                 <mat-card-content class="perfil-data">
-
-                  <!-- Vista -->
                   @if (!editandoPerfil()) {
                     <div class="perfil-field">
                       <mat-icon>email</mat-icon>
@@ -379,8 +469,6 @@
                       </div>
                     </div>
                   }
-
-                  <!-- Edición -->
                   @if (editandoPerfil()) {
                     <form [formGroup]="perfilForm" class="perfil-form">
                       <mat-form-field appearance="outline" class="full-width">
@@ -409,7 +497,6 @@
                       </div>
                     </form>
                   }
-
                 </mat-card-content>
               </mat-card>
 

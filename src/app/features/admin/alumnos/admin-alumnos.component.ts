@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { AdminService } from '../../../core/services/admin.service';
@@ -26,7 +27,7 @@ import { AlumnoAdmin } from '../../../core/models/api-response.model';
     FormsModule,
     MatSidenavModule, MatToolbarModule, MatListModule, MatIconModule,
     MatButtonModule, MatTableModule, MatProgressSpinnerModule, MatDividerModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatChipsModule
+    MatFormFieldModule, MatInputModule, MatSelectModule, MatChipsModule, MatTooltipModule
   ],
   templateUrl: './admin-alumnos.component.html',
   styleUrl: './admin-alumnos.component.scss'
@@ -116,6 +117,8 @@ export class AdminAlumnosComponent implements OnInit {
       lista.map(a => a.id === actualizado.id ? actualizado : a)
     );
   }
+
+  verDetalle(a: AlumnoAdmin): void { this.router.navigate(['/admin/alumnos', a.id]); }
 
   irAPre():      void { this.router.navigate(['/admin/lista']); }
   irACarreras(): void { this.router.navigate(['/admin/carreras']); }

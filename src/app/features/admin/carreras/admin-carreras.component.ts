@@ -49,7 +49,7 @@ export class AdminCarrerasComponent implements OnInit {
   carreras = signal<Carrera[]>([]);
   loading = signal(false);
 
-  displayedColumns = ['nombre', 'descripcion', 'activa', 'cupoMaximo', 'acciones'];
+  displayedColumns = ['nombre', 'descripcion', 'activa', 'acciones'];
 
   ngOnInit() {
     this.cargar();

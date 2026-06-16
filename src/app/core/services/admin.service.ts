@@ -5,7 +5,7 @@ import {
   ApiResponse, PageResponse,
   Preinscripcion, PreinscripcionDetalle, EstadoPreinscripcion,
   PagoResponse, DocumentoChecklistResponse, TipoDocumento, TurnoResponse,
-  Carrera, CarreraDetalle, AnioCarreraResponse, MateriaResponse,
+  Carrera, CarreraDetalle, AnioCarreraResponse, MateriaResponse, ComisionResponse,
   DocenteResumen, DocenteResponse, MateriaDetalleDocente, UsuarioAdmin, AlumnoAdmin
 } from '../models/api-response.model';
 
@@ -13,11 +13,16 @@ export interface CarreraRequest {
   nombre: string;
   descripcion: string;
   activa: boolean;
-  cupoMaximo: number;
-  prefijoTurno: string;
 }
 
 export interface AnioRequest { numeroAnio: number; }
+
+export interface ComisionRequest {
+  nombre: string;
+  cupoMaximo: number;
+  prefijoTurno: string | null;
+  activa: boolean;
+}
 
 export interface MateriaRequest {
   nombre: string;
@@ -86,8 +91,8 @@ export class AdminService {
     return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/en-revision`, {});
   }
 
-  habilitar(id: number): Observable<ApiResponse<Preinscripcion>> {
-    return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/habilitar`, {});
+  habilitar(id: number, comisionId: number): Observable<ApiResponse<Preinscripcion>> {
+    return this.http.put<ApiResponse<Preinscripcion>>(`/api/preinscripciones/${id}/habilitar`, { comisionId });
   }
 
   rechazar(id: number): Observable<ApiResponse<Preinscripcion>> {
@@ -174,6 +179,18 @@ export class AdminService {
     return this.http.delete<ApiResponse<null>>(`/api/carreras/materias/${materiaId}`);
   }
 
+  agregarComision(anioId: number, req: ComisionRequest): Observable<ApiResponse<ComisionResponse>> {
+    return this.http.post<ApiResponse<ComisionResponse>>(`/api/carreras/anios/${anioId}/comisiones`, req);
+  }
+
+  actualizarComision(comisionId: number, req: ComisionRequest): Observable<ApiResponse<ComisionResponse>> {
+    return this.http.put<ApiResponse<ComisionResponse>>(`/api/carreras/comisiones/${comisionId}`, req);
+  }
+
+  eliminarComision(comisionId: number): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/carreras/comisiones/${comisionId}`);
+  }
+
   getDocentes(): Observable<ApiResponse<DocenteResumen[]>> {
     return this.http.get<ApiResponse<DocenteResumen[]>>('/api/carreras/docentes');
   }
@@ -214,12 +231,20 @@ export class AdminService {
     );
   }
 
+  getAlumno(id: number): Observable<ApiResponse<AlumnoAdmin>> {
+    return this.http.get<ApiResponse<AlumnoAdmin>>(`/api/alumnos/${id}`);
+  }
+
   habilitarAlumno(id: number): Observable<ApiResponse<AlumnoAdmin>> {
     return this.http.put<ApiResponse<AlumnoAdmin>>(`/api/alumnos/${id}/habilitar`, {});
   }
 
   deshabilitarAlumno(id: number): Observable<ApiResponse<AlumnoAdmin>> {
     return this.http.put<ApiResponse<AlumnoAdmin>>(`/api/alumnos/${id}/deshabilitar`, {});
+  }
+
+  reenviarActivacion(id: number): Observable<ApiResponse<null>> {
+    return this.http.post<ApiResponse<null>>(`/api/alumnos/${id}/reenviar-activacion`, {});
   }
 
   // ── SUPER_ADMIN — gestión de usuarios ────────────────────────────────────

@@ -126,8 +126,63 @@
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
-              <!-- Cuerpo del año: grid de materias -->
+              <!-- Cuerpo del año: comisiones + materias -->
               <div class="materias-section">
+
+                <!-- ── Comisiones ──────────────────────────────── -->
+                <div class="comisiones-block">
+                  <div class="materias-toolbar">
+                    <span class="materias-toolbar-title" style="display:flex;align-items:center;gap:6px">
+                      <mat-icon>group</mat-icon> Comisiones
+                    </span>
+                    <button mat-stroked-button color="accent" (click)="agregarComision(anio.id)">
+                      <mat-icon>add</mat-icon> Nueva comisión
+                    </button>
+                  </div>
+
+                  @if (!anio.comisiones?.length) {
+                    <div class="comisiones-empty">
+                      <mat-icon>group_off</mat-icon>
+                      <span>Sin comisiones. Cada año puede tener múltiples secciones.</span>
+                    </div>
+                  } @else {
+                    <div class="comisiones-grid">
+                      @for (com of anio.comisiones; track com.id) {
+                        <div class="comision-card" [class.inactiva]="!com.activa">
+                          <div class="comision-header">
+                            <span class="comision-nombre">Comisión {{ com.nombre }}</span>
+                            <div class="comision-acciones">
+                              <button mat-icon-button (click)="editarComision(com)" matTooltip="Editar">
+                                <mat-icon>edit</mat-icon>
+                              </button>
+                              <button mat-icon-button color="warn"
+                                (click)="eliminarComision(com.id, com.nombre)" matTooltip="Eliminar">
+                                <mat-icon>delete</mat-icon>
+                              </button>
+                            </div>
+                          </div>
+                          <div class="comision-info">
+                            <span class="info-chip">
+                              <mat-icon>people</mat-icon>
+                              {{ com.alumnosCount }} / {{ com.cupoMaximo > 0 ? com.cupoMaximo : '∞' }}
+                            </span>
+                            @if (com.prefijoTurno) {
+                              <span class="info-chip">
+                                <mat-icon>confirmation_number</mat-icon>
+                                Prefijo: {{ com.prefijoTurno }}
+                              </span>
+                            }
+                            <span [class]="'estado-badge ' + (com.activa ? 'badge-activa' : 'badge-inactiva')">
+                              {{ com.activa ? 'Activa' : 'Inactiva' }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <mat-divider style="margin: 16px 0" />
 
                 <div class="materias-toolbar">
                   <span class="materias-toolbar-title">Materias del {{ anio.numeroAnio }}° año</span>

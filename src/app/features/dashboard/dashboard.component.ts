@@ -18,27 +18,26 @@ import { DecimalPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { PreinscripcionService } from '../../core/services/preinscripcion.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { DocumentoResumen, PerfilResponse, TipoDocumento } from '../../core/models/api-response.model';
+import {
+  AsistenciaAlumnoResumen, DocumentoResumen, HorarioAlumnoItem,
+  PerfilResponse, TipoDocumento
+} from '../../core/models/api-response.model';
 
-export type Section = 'inicio' | 'materias' | 'documentos' | 'perfil';
+export type Section = 'inicio' | 'materias' | 'horario' | 'documentos' | 'perfil';
 
-export interface Materia {
-  nombre: string;
-  año: number;
-  condicion: 'Regular' | 'Libre' | 'Cursando' | 'Promocionado';
-  notas: number[];
-  asistencia: number;
+export interface CalendarDay {
+  date: Date | null;
+  horariosDia: HorarioAlumnoItem[];
 }
 
-const MATERIAS: Materia[] = [
-  { nombre: 'Matemática Discreta',               año: 1, condicion: 'Regular',      notas: [6, 7, 7],   asistencia: 82 },
-  { nombre: 'Algoritmos y Estructuras de Datos', año: 1, condicion: 'Regular',      notas: [8, 9, 9],   asistencia: 91 },
-  { nombre: 'Inglés Técnico I',                  año: 1, condicion: 'Libre',        notas: [3, 4],      asistencia: 48 },
-  { nombre: 'Arquitectura de Computadoras',      año: 1, condicion: 'Promocionado', notas: [9, 9, 10],  asistencia: 96 },
-  { nombre: 'Análisis de Sistemas I',            año: 1, condicion: 'Regular',      notas: [7, 8],      asistencia: 80 },
-  { nombre: 'Programación I',                    año: 1, condicion: 'Cursando',     notas: [],          asistencia: 75 },
-  { nombre: 'Base de Datos I',                   año: 2, condicion: 'Cursando',     notas: [],          asistencia: 88 },
-];
+const DIA_MAP: Record<number, string> = {
+  0: 'DOMINGO', 1: 'LUNES', 2: 'MARTES', 3: 'MIERCOLES',
+  4: 'JUEVES',  5: 'VIERNES', 6: 'SABADO'
+};
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
 @Component({
   selector: 'app-dashboard',
@@ -58,17 +57,63 @@ export class DashboardComponent implements OnInit {
   private fb             = inject(FormBuilder);
   private snackBar       = inject(MatSnackBar);
 
-  activeSection   = signal<Section>('inicio');
-  perfil          = signal<PerfilResponse | null>(null);
-  documentos      = signal<DocumentoResumen[]>([]);
-  loadingDocs     = signal(false);
-  fotoCarnetUrl   = signal<string | null>(null);
-  editandoPerfil  = signal(false);
-  guardandoPerfil = signal(false);
-  materias        = MATERIAS;
+  activeSection    = signal<Section>('inicio');
+  perfil           = signal<PerfilResponse | null>(null);
+  documentos       = signal<DocumentoResumen[]>([]);
+  horarios         = signal<HorarioAlumnoItem[]>([]);
+  asistencias      = signal<AsistenciaAlumnoResumen[]>([]);
 
-  tipoSubiendo   = signal<TipoDocumento | null>(null);
-  subiendoDocs   = signal<Set<string>>(new Set());
+  loadingDocs      = signal(false);
+  loadingHorarios  = signal(false);
+  loadingAsist     = signal(false);
+
+  fotoCarnetUrl    = signal<string | null>(null);
+  editandoPerfil   = signal(false);
+  guardandoPerfil  = signal(false);
+
+  tipoSubiendo  = signal<TipoDocumento | null>(null);
+  subiendoDocs  = signal<Set<string>>(new Set());
+
+  // ── Calendar state ──────────────────────────────────────────────
+  calendarYear  = signal(new Date().getFullYear());
+  calendarMonth = signal(new Date().getMonth());
+  selectedDay   = signal<{ date: Date; horarios: HorarioAlumnoItem[] } | null>(null);
+
+  // ── Computed ─────────────────────────────────────────────────────
+  cursando = computed(() => this.asistencias().filter(a => !a.libre).length);
+  libres   = computed(() => this.asistencias().filter(a => a.libre).length);
+  promAsist = computed(() => {
+    const all = this.asistencias();
+    if (!all.length) return 0;
+    return all.reduce((s, a) => s + a.porcentajeAsistencia, 0) / all.length;
+  });
+  docsValidados = computed(() => this.documentos().filter(d => d.estado === 'VALIDADO').length);
+  docsSubidos   = computed(() => this.documentos().filter(d => d.archivoUrl != null).length);
+
+  calendarMonthLabel = computed(() =>
+    `${MESES[this.calendarMonth()]} ${this.calendarYear()}`
+  );
+
+  calendarDays = computed<CalendarDay[]>(() => {
+    const year  = this.calendarYear();
+    const month = this.calendarMonth();
+    const hrs   = this.horarios();
+
+    const firstDay     = new Date(year, month, 1);
+    const daysInMonth  = new Date(year, month + 1, 0).getDate();
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // Lun=0
+
+    const cells: CalendarDay[] = [];
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      cells.push({ date: null, horariosDia: [] });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      const diaKey = DIA_MAP[date.getDay()];
+      cells.push({ date, horariosDia: hrs.filter(h => h.diaSemana === diaKey) });
+    }
+    return cells;
+  });
 
   readonly TIPOS_DOC: { tipo: TipoDocumento; label: string; icono: string }[] = [
     { tipo: 'DNI_FRENTE',      label: 'DNI Frente',               icono: 'badge'           },
@@ -80,38 +125,21 @@ export class DashboardComponent implements OnInit {
     { tipo: 'FOTO_CARNET',     label: 'Foto Carnet',              icono: 'person_pin'      },
   ];
 
-  perfilForm = this.fb.group({
-    direccion: [''],
-    telefono:  ['']
-  });
-
-  readonly anios = [1, 2];
+  perfilForm = this.fb.group({ direccion: [''], telefono: [''] });
 
   readonly navItems: { section: Section; icon: string; label: string }[] = [
-    { section: 'inicio',     icon: 'home',        label: 'Inicio'       },
-    { section: 'materias',   icon: 'school',      label: 'Mis Materias' },
-    { section: 'documentos', icon: 'folder_open', label: 'Documentos'   },
-    { section: 'perfil',     icon: 'person',      label: 'Mi Perfil'    },
+    { section: 'inicio',     icon: 'home',           label: 'Inicio'       },
+    { section: 'materias',   icon: 'school',          label: 'Mis Materias' },
+    { section: 'horario',    icon: 'calendar_month',  label: 'Mi Horario'   },
+    { section: 'documentos', icon: 'folder_open',     label: 'Documentos'   },
+    { section: 'perfil',     icon: 'person',          label: 'Mi Perfil'    },
   ];
 
-  regulares   = computed(() => this.materias.filter(m => m.condicion === 'Regular').length);
-  libres      = computed(() => this.materias.filter(m => m.condicion === 'Libre').length);
-  promAsist   = computed(() => {
-    const vals = this.materias.map(m => m.asistencia);
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
-  });
-  docsValidados = computed(() =>
-    this.documentos().filter(d => d.estado === 'VALIDADO').length
-  );
-  docsSubidos = computed(() =>
-    this.documentos().filter(d => d.archivoUrl != null).length
-  );
-
   ngOnInit(): void {
-    this.preinscService.getPerfil().subscribe({
-      next: res => this.perfil.set(res.data)
-    });
+    this.preinscService.getPerfil().subscribe({ next: res => this.perfil.set(res.data) });
     this.cargarDocumentos();
+    this.cargarHorarios();
+    this.cargarAsistencias();
   }
 
   setSection(section: Section): void {
@@ -131,6 +159,62 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  cargarHorarios(): void {
+    this.loadingHorarios.set(true);
+    this.preinscService.getHorarios().subscribe({
+      next:     res => this.horarios.set(res.data ?? []),
+      complete: () => this.loadingHorarios.set(false),
+      error:    () => this.loadingHorarios.set(false)
+    });
+  }
+
+  cargarAsistencias(): void {
+    this.loadingAsist.set(true);
+    this.preinscService.getAsistenciasResumen().subscribe({
+      next:     res => this.asistencias.set(res.data ?? []),
+      complete: () => this.loadingAsist.set(false),
+      error:    () => this.loadingAsist.set(false)
+    });
+  }
+
+  // ── Calendar ─────────────────────────────────────────────────────
+  prevMonth(): void {
+    let m = this.calendarMonth() - 1, y = this.calendarYear();
+    if (m < 0) { m = 11; y--; }
+    this.calendarMonth.set(m); this.calendarYear.set(y);
+    this.selectedDay.set(null);
+  }
+
+  nextMonth(): void {
+    let m = this.calendarMonth() + 1, y = this.calendarYear();
+    if (m > 11) { m = 0; y++; }
+    this.calendarMonth.set(m); this.calendarYear.set(y);
+    this.selectedDay.set(null);
+  }
+
+  selectDay(cell: CalendarDay): void {
+    if (!cell.date || !cell.horariosDia.length) { this.selectedDay.set(null); return; }
+    const sel = this.selectedDay();
+    if (sel?.date.getTime() === cell.date.getTime()) {
+      this.selectedDay.set(null);
+    } else {
+      this.selectedDay.set({ date: cell.date, horarios: cell.horariosDia });
+    }
+  }
+
+  isToday(date: Date | null): boolean {
+    if (!date) return false;
+    const t = new Date();
+    return date.getDate() === t.getDate() &&
+           date.getMonth() === t.getMonth() &&
+           date.getFullYear() === t.getFullYear();
+  }
+
+  formatSelectedDate(date: Date): string {
+    return `${DIAS_ES[date.getDay()]} ${date.getDate()} de ${MESES[date.getMonth()].toLowerCase()}`;
+  }
+
+  // ── Documentos ───────────────────────────────────────────────────
   private actualizarFotoCarnet(docs: DocumentoResumen[]): void {
     const foto = docs.find(d => d.tipoDocumento === 'FOTO_CARNET' && d.archivoUrl);
     this.fotoCarnetUrl.set(foto?.archivoUrl ?? null);
@@ -156,13 +240,11 @@ export class DashboardComponent implements OnInit {
 
   private realizarUpload(tipo: TipoDocumento, archivo: File): void {
     this.subiendoDocs.update(s => new Set([...s, tipo]));
-
     this.preinscService.subirDocumento(tipo, archivo).subscribe({
       next: res => {
         if (res.data) {
           this.documentos.update(docs => [
-            ...docs.filter(d => d.tipoDocumento !== tipo),
-            res.data!
+            ...docs.filter(d => d.tipoDocumento !== tipo), res.data!
           ]);
           this.actualizarFotoCarnet(this.documentos());
           this.snackBar.open('Documento subido correctamente.', 'Cerrar', { duration: 3000 });
@@ -182,22 +264,7 @@ export class DashboardComponent implements OnInit {
     if (doc.archivoUrl) window.open(doc.archivoUrl, '_blank');
   }
 
-  materiasDeAnio(año: number): Materia[] {
-    return this.materias.filter(m => m.año === año);
-  }
-
-  promedio(notas: number[]): number | null {
-    if (!notas.length) return null;
-    return notas.reduce((a, b) => a + b, 0) / notas.length;
-  }
-
-  estadoDocLabel(e: string): string {
-    const m: Record<string, string> = {
-      PENDIENTE: 'Pendiente', SUBIDO: 'Subido', VALIDADO: 'Validado', RECHAZADO: 'Rechazado'
-    };
-    return m[e] ?? e;
-  }
-
+  // ── Perfil ───────────────────────────────────────────────────────
   iniciarEdicion(): void {
     const p = this.perfil();
     this.perfilForm.setValue({ direccion: p?.direccion ?? '', telefono: p?.telefono ?? '' });
@@ -210,7 +277,7 @@ export class DashboardComponent implements OnInit {
     const { direccion, telefono } = this.perfilForm.value;
     this.guardandoPerfil.set(true);
     this.preinscService.actualizarPerfil(direccion ?? '', telefono ?? '').subscribe({
-      next: res => { this.perfil.set(res.data); this.editandoPerfil.set(false); },
+      next:     res => { this.perfil.set(res.data); this.editandoPerfil.set(false); },
       complete: () => this.guardandoPerfil.set(false),
       error:    () => this.guardandoPerfil.set(false)
     });

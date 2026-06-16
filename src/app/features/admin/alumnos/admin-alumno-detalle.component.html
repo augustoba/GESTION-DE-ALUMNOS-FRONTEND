@@ -1,0 +1,182 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <img src="Logo50IES_COVIELLO_chico.jpg" alt="Logo IES Coviello" class="sidenav-logo" />
+      <span class="sidenav-inst">IES Alfredo Coviello</span>
+    </div>
+    <mat-divider />
+    <mat-nav-list class="nav-list">
+      <mat-list-item (click)="irAPre()">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Preinscripciones</span>
+      </mat-list-item>
+      <mat-list-item (click)="volver()" class="active-item">
+        <mat-icon matListItemIcon>school</mat-icon>
+        <span matListItemTitle>Alumnos</span>
+      </mat-list-item>
+      <mat-list-item (click)="irACarreras()">
+        <mat-icon matListItemIcon>menu_book</mat-icon>
+        <span matListItemTitle>Carreras</span>
+      </mat-list-item>
+      <mat-list-item (click)="irADocentes()">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Docentes</span>
+      </mat-list-item>
+      @if (isSuperAdmin) {
+        <mat-list-item (click)="irAUsuarios()">
+          <mat-icon matListItemIcon>manage_accounts</mat-icon>
+          <span matListItemTitle>Usuarios</span>
+        </mat-list-item>
+      }
+    </mat-nav-list>
+    <div class="sidenav-footer">
+      <mat-divider />
+      <div class="sidenav-user">
+        <mat-icon class="user-avatar-icon">admin_panel_settings</mat-icon>
+        <div class="user-name-text">
+          <span class="user-nombre">Administrador</span>
+          <span class="user-rol">{{ isSuperAdmin ? 'Super Admin' : 'Admin' }}</span>
+        </div>
+      </div>
+      <mat-divider />
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon> Cerrar sesión
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="volver()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <mat-icon class="toolbar-icon">school</mat-icon>
+      @if (alumno()) {
+        <span class="toolbar-title">{{ alumno()!.apellidos }}, {{ alumno()!.nombres }}</span>
+        <span [class]="'estado-chip ' + (alumno()!.habilitado ? 'chip-success' : 'chip-muted')">
+          {{ alumno()!.habilitado ? 'Habilitado' : 'Deshabilitado' }}
+        </span>
+      } @else {
+        <span class="toolbar-title">Alumno</span>
+      }
+      <span class="spacer"></span>
+    </mat-toolbar>
+
+    <div class="content-area">
+
+      @if (loading()) {
+        <div class="loading-center"><mat-spinner diameter="48" /></div>
+
+      } @else if (!alumno()) {
+        <div class="empty-state">
+          <mat-icon>error_outline</mat-icon>
+          <p>No se encontró el alumno.</p>
+        </div>
+
+      } @else {
+
+        <!-- Card datos del alumno -->
+        <mat-card class="alumno-card">
+          <mat-card-content class="alumno-content">
+            <div class="alumno-avatar">
+              {{ alumno()!.nombres[0] }}{{ alumno()!.apellidos[0] }}
+            </div>
+            <div class="alumno-info">
+              <div class="alumno-nombre">{{ alumno()!.nombres }} {{ alumno()!.apellidos }}</div>
+              <div class="alumno-datos">
+                <span class="dato-item">
+                  <mat-icon>badge</mat-icon> {{ alumno()!.dni }}
+                </span>
+                @if (alumno()!.email) {
+                  <span class="dato-item">
+                    <mat-icon>email</mat-icon> {{ alumno()!.email }}
+                  </span>
+                }
+                @if (alumno()!.telefono) {
+                  <span class="dato-item">
+                    <mat-icon>phone</mat-icon> {{ alumno()!.telefono }}
+                  </span>
+                }
+                @if (alumno()!.carreraNombre) {
+                  <span class="dato-item">
+                    <mat-icon>menu_book</mat-icon> {{ alumno()!.carreraNombre }}
+                    @if (alumno()!.anioNumero) {
+                      — {{ alumno()!.anioNumero }}° año
+                    }
+                    @if (alumno()!.comisionNombre) {
+                      — Comisión {{ alumno()!.comisionNombre }}
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Acciones -->
+        <div class="acciones-section">
+          <h3 class="section-title">
+            <mat-icon>settings</mat-icon>
+            Acciones
+          </h3>
+
+          <div class="acciones-grid">
+
+            <!-- Habilitar / Deshabilitar -->
+            <div class="accion-card">
+              <div class="accion-header">
+                <mat-icon>{{ alumno()!.habilitado ? 'block' : 'check_circle' }}</mat-icon>
+                <div>
+                  <div class="accion-titulo">{{ alumno()!.habilitado ? 'Deshabilitar cuenta' : 'Habilitar cuenta' }}</div>
+                  <div class="accion-desc">
+                    @if (alumno()!.habilitado) {
+                      El alumno perderá acceso al sistema hasta que sea habilitado nuevamente.
+                    } @else {
+                      El alumno recuperará el acceso al sistema.
+                    }
+                  </div>
+                </div>
+              </div>
+              @if (alumno()!.habilitado) {
+                <button mat-stroked-button color="warn" (click)="deshabilitar()">
+                  <mat-icon>block</mat-icon> Deshabilitar
+                </button>
+              } @else {
+                <button mat-flat-button color="primary" (click)="habilitar()">
+                  <mat-icon>check_circle</mat-icon> Habilitar
+                </button>
+              }
+            </div>
+
+            <!-- Reenviar activación -->
+            <div class="accion-card">
+              <div class="accion-header">
+                <mat-icon>mark_email_unread</mat-icon>
+                <div>
+                  <div class="accion-titulo">Reenviar email de activación</div>
+                  <div class="accion-desc">
+                    Genera un nuevo link de activación (válido 72 horas) y lo envía al email del alumno.
+                    Usalo si el link anterior venció.
+                  </div>
+                </div>
+              </div>
+              <button mat-stroked-button color="primary"
+                      (click)="reenviarActivacion()"
+                      [disabled]="enviandoActivacion()">
+                @if (enviandoActivacion()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  <mat-icon>send</mat-icon>
+                }
+                Reenviar activación
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

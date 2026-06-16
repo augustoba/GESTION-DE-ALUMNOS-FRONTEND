@@ -27,15 +27,8 @@ import { CommonModule } from '@angular/common';
           <mat-label>Descripción</mat-label>
           <textarea matInput formControlName="descripcion" rows="3"></textarea>
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Cupo máximo (0 = sin límite)</mat-label>
-          <input matInput type="number" formControlName="cupoMaximo" min="0" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Prefijo de turno (Ej: A, B, INF)</mat-label>
-          <input matInput formControlName="prefijoTurno" placeholder="Ej: A" />
-        </mat-form-field>
         <mat-slide-toggle formControlName="activa">Carrera activa</mat-slide-toggle>
+        <p class="hint-text">Los cupos y prefijos de turno se configuran por comisión dentro de cada año.</p>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -48,6 +41,7 @@ import { CommonModule } from '@angular/common';
   styles: [`
     .form-grid { display: flex; flex-direction: column; gap: 8px; min-width: 380px; padding-top: 8px; }
     mat-form-field { width: 100%; }
+    .hint-text { font-size: 0.8rem; color: #64748b; margin: 4px 0 0; }
   `]
 })
 export class CarreraFormDialogComponent implements OnInit {
@@ -57,8 +51,6 @@ export class CarreraFormDialogComponent implements OnInit {
   form = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: [''],
-    cupoMaximo: [0, [Validators.required, Validators.min(0)]],
-    prefijoTurno: [''],
     activa: [true]
   });
 
@@ -69,8 +61,6 @@ export class CarreraFormDialogComponent implements OnInit {
       this.form.patchValue({
         nombre: this.data.nombre,
         descripcion: this.data.descripcion ?? '',
-        cupoMaximo: this.data.cupoMaximo ?? 0,
-        prefijoTurno: this.data.prefijoTurno ?? '',
         activa: this.data.activa ?? true
       });
     }

@@ -21,10 +21,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { AdminService } from '../../../core/services/admin.service';
+import { AdminService, ComisionRequest } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { CarreraDetalle, AnioCarreraResponse, MateriaResponse, DocenteResumen } from '../../../core/models/api-response.model';
+import { CarreraDetalle, AnioCarreraResponse, MateriaResponse, ComisionResponse, DocenteResumen } from '../../../core/models/api-response.model';
 import { MateriaFormDialogComponent } from './materia-form-dialog.component';
+import { ComisionFormDialogComponent } from './comision-form-dialog.component';
 
 @Component({
   selector: 'app-admin-carrera-detalle',
@@ -172,6 +173,51 @@ export class AdminCarreraDetalleComponent implements OnInit {
         this.cargar();
       },
       error: () => this.snackBar.open('Error al eliminar', 'OK', { duration: 3000 })
+    });
+  }
+
+  agregarComision(anioId: number) {
+    const ref = this.dialog.open(ComisionFormDialogComponent, {
+      width: '420px',
+      data: { comision: null }
+    });
+    ref.afterClosed().subscribe((result: ComisionRequest | undefined) => {
+      if (!result) return;
+      this.adminService.agregarComision(anioId, result).subscribe({
+        next: () => {
+          this.snackBar.open('Comisión agregada', 'OK', { duration: 2500 });
+          this.cargar();
+        },
+        error: err => this.snackBar.open(err.error?.mensaje ?? 'Error al agregar comisión', 'OK', { duration: 3000 })
+      });
+    });
+  }
+
+  editarComision(comision: ComisionResponse) {
+    const ref = this.dialog.open(ComisionFormDialogComponent, {
+      width: '420px',
+      data: { comision }
+    });
+    ref.afterClosed().subscribe((result: ComisionRequest | undefined) => {
+      if (!result) return;
+      this.adminService.actualizarComision(comision.id, result).subscribe({
+        next: () => {
+          this.snackBar.open('Comisión actualizada', 'OK', { duration: 2500 });
+          this.cargar();
+        },
+        error: err => this.snackBar.open(err.error?.mensaje ?? 'Error al actualizar', 'OK', { duration: 3000 })
+      });
+    });
+  }
+
+  eliminarComision(comisionId: number, nombre: string) {
+    if (!confirm(`¿Eliminar la comisión "${nombre}"? Se perderá la asignación de todos sus alumnos.`)) return;
+    this.adminService.eliminarComision(comisionId).subscribe({
+      next: () => {
+        this.snackBar.open('Comisión eliminada', 'OK', { duration: 2500 });
+        this.cargar();
+      },
+      error: err => this.snackBar.open(err.error?.mensaje ?? 'Error al eliminar', 'OK', { duration: 3000 })
     });
   }
 

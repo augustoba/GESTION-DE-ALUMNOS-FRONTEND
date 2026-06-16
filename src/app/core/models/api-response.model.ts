@@ -111,6 +111,7 @@ export interface TurnoResponse {
 
 // ── Perfil / Documentos digitales ─────────────────────────────────────────────
 export interface PerfilResponse {
+  alumnoId: number;
   nombres: string;
   apellidos: string;
   dni: string;
@@ -119,6 +120,31 @@ export interface PerfilResponse {
   direccion: string | null;
   fechaNac: string | null;
   status: boolean;
+  carreraNombre: string | null;
+  comisionNombre: string | null;
+  anioNumero: number | null;
+}
+
+export interface HorarioAlumnoItem {
+  materiaId: number;
+  materiaNombre: string;
+  diaSemana: string;
+  horaInicio: string;
+  horaFin: string;
+  aula: string | null;
+}
+
+export interface AsistenciaAlumnoResumen {
+  alumnoId: number;
+  alumnoNombre: string;
+  materiaId: number;
+  materiaNombre: string;
+  totalClases: number;
+  presentes: number;
+  tardanzas: number;
+  ausentes: number;
+  porcentajeAsistencia: number;
+  libre: boolean;
 }
 
 export interface DocumentoResumen {
@@ -129,7 +155,7 @@ export interface DocumentoResumen {
   motivoRechazo: string | null;
 }
 
-// ── Carrera / Materia ─────────────────────────────────────────────────────────
+// ── Carrera / Materia / Comision ──────────────────────────────────────────────
 export interface Carrera { id: number; nombre: string; }
 
 export interface DocenteResumen { id: number; nombres: string; apellidos: string; email: string; }
@@ -145,10 +171,20 @@ export interface MateriaResponse {
   aula?: string | null;
 }
 
+export interface ComisionResponse {
+  id: number;
+  nombre: string;
+  cupoMaximo: number;
+  prefijoTurno: string | null;
+  activa: boolean;
+  alumnosCount: number;
+}
+
 export interface AnioCarreraResponse {
   id: number;
   numeroAnio: number;
   materias: MateriaResponse[];
+  comisiones: ComisionResponse[];
 }
 
 export interface CarreraDetalle {
@@ -156,8 +192,6 @@ export interface CarreraDetalle {
   nombre: string;
   descripcion: string | null;
   activa: boolean;
-  cupoMaximo: number;
-  prefijoTurno: string | null;
   anios: AnioCarreraResponse[];
 }
 
@@ -204,7 +238,11 @@ export interface AlumnoAdmin {
   email: string | null;
   telefono: string | null;
   habilitado: boolean;
-  carrera: CarreraRef | null;
+  comisionId: number | null;
+  comisionNombre: string | null;
+  anioNumero: number | null;
+  carreraId: number | null;
+  carreraNombre: string | null;
 }
 
 // ── Usuarios admin (SUPER_ADMIN) ──────────────────────────────────────────────

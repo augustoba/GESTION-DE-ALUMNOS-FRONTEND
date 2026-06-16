@@ -309,3 +309,86 @@
 
   mat-icon { font-size: 13px; width: 13px; height: 13px; }
 }
+
+/* ── Comisiones ──────────────────────────────────────────────────────── */
+.comisiones-block { margin-bottom: 8px; }
+
+.comisiones-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 12px 4px;
+  mat-icon { color: #cbd5e1; }
+}
+
+.comisiones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.comision-card {
+  background: #f8faff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.15s;
+
+  &:hover { box-shadow: 0 2px 8px rgba(59,130,246,0.15); }
+
+  &.inactiva {
+    opacity: 0.65;
+    background: #f8f8f8;
+    border-color: #e2e8f0;
+  }
+}
+
+.comision-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comision-nombre {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.comision-acciones { display: flex; }
+
+.comision-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+.estado-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.badge-activa { background: #dcfce7; color: #166534; }
+.badge-inactiva { background: #fee2e2; color: #991b1b; }
