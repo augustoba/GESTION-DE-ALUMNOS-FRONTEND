@@ -12,10 +12,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { AdminService } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { DocenteResponse, MateriaDetalleDocente } from '../../../core/models/api-response.model';
+import { DocenteResponse, MateriaDetalleDocente, MateriaResponse } from '../../../core/models/api-response.model';
 
 @Component({
   selector: 'app-admin-docente-detalle',
@@ -24,7 +27,8 @@ import { DocenteResponse, MateriaDetalleDocente } from '../../../core/models/api
     CommonModule,
     MatSidenavModule, MatToolbarModule, MatIconModule, MatButtonModule,
     MatCardModule, MatProgressSpinnerModule, MatDividerModule,
-    MatListModule, MatTooltipModule, MatSnackBarModule
+    MatListModule, MatTooltipModule, MatSnackBarModule,
+    MatSelectModule, MatChipsModule, MatFormFieldModule
   ],
   templateUrl: './admin-docente-detalle.component.html',
   styleUrl: './admin-docente-detalle.component.scss'
@@ -36,11 +40,14 @@ export class AdminDocenteDetalleComponent implements OnInit {
   private authService  = inject(AuthService);
   private snackBar     = inject(MatSnackBar);
 
-  docente  = signal<DocenteResponse | null>(null);
-  materias = signal<MateriaDetalleDocente[]>([]);
-  loading  = signal(true);
+  private docenteId = 0;
 
-  // agrupar materias por carrera para mejor presentación
+  docente       = signal<DocenteResponse | null>(null);
+  materias      = signal<MateriaDetalleDocente[]>([]);
+  todasMaterias = signal<MateriaResponse[]>([]);
+  loading       = signal(true);
+  mostrarSelector = signal(false);
+
   materiasPorCarrera = computed(() => {
     const grupos = new Map<string, MateriaDetalleDocente[]>();
     for (const m of this.materias()) {
@@ -51,27 +58,55 @@ export class AdminDocenteDetalleComponent implements OnInit {
     return Array.from(grupos.entries()).map(([carrera, items]) => ({ carrera, items }));
   });
 
+  materiasSinAsignar = computed(() => {
+    const asignadas = new Set(this.materias().map(m => m.id));
+    return this.todasMaterias().filter(m => !asignadas.has(m.id));
+  });
+
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.docenteId = Number(this.route.snapshot.paramMap.get('id'));
     this.adminService.getDocentesTodos().subscribe({
       next: res => {
-        const docente = res.data.find(d => d.id === id) ?? null;
+        const docente = res.data.find(d => d.id === this.docenteId) ?? null;
         this.docente.set(docente);
       }
     });
-    this.adminService.getDocenteMaterias(id).subscribe({
+    this.adminService.getDocenteMaterias(this.docenteId).subscribe({
       next: res => { this.materias.set(res.data); this.loading.set(false); },
       error: () => this.loading.set(false)
     });
+    this.cargarTodasMaterias();
   }
 
-  diaSemanaLabel(dia: string | null): string {
-    const dias: Record<string, string> = {
-      LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles',
-      JUEVES: 'Jueves', VIERNES: 'Viernes', SABADO: 'Sábado', DOMINGO: 'Domingo'
-    };
-    return dia ? (dias[dia] ?? dia) : '';
+  cargarTodasMaterias() {
+    this.adminService.getTodasMaterias().subscribe({
+      next: res => this.todasMaterias.set(res.data),
+      error: ()  => {}
+    });
   }
+
+  asignarMateria(materiaId: number) {
+    this.adminService.asignarMateriaADocente(this.docenteId, materiaId).subscribe({
+      next: res => {
+        this.materias.set(res.data);
+        this.mostrarSelector.set(false);
+        this.snackBar.open('Materia asignada', 'OK', { duration: 3000 });
+      },
+      error: err => this.snackBar.open(err?.error?.mensaje || 'Error al asignar', 'OK', { duration: 4000 })
+    });
+  }
+
+  quitarMateria(materiaId: number) {
+    this.adminService.desasignarMateriaDeDocente(this.docenteId, materiaId).subscribe({
+      next: res => {
+        this.materias.set(res.data);
+        this.snackBar.open('Materia quitada', 'OK', { duration: 3000 });
+      },
+      error: err => this.snackBar.open(err?.error?.mensaje || 'Error al quitar', 'OK', { duration: 4000 })
+    });
+  }
+
+  toggleSelector() { this.mostrarSelector.update(v => !v); }
 
   volver()      { this.router.navigate(['/admin/docentes']); }
   irALista()    { this.router.navigate(['/admin/lista']); }

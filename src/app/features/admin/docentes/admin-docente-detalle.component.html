@@ -88,10 +88,31 @@
           <mat-icon>menu_book</mat-icon>
           Materias asignadas
         </h3>
-        @if (!loading()) {
-          <span class="materias-count">{{ materias().length }} materia{{ materias().length !== 1 ? 's' : '' }}</span>
-        }
+        <div class="materias-header-actions">
+          @if (!loading()) {
+            <span class="materias-count">{{ materias().length }} materia{{ materias().length !== 1 ? 's' : '' }}</span>
+          }
+          <button mat-stroked-button color="primary" (click)="toggleSelector()" [disabled]="materiasSinAsignar().length === 0">
+            <mat-icon>{{ mostrarSelector() ? 'close' : 'add' }}</mat-icon>
+            {{ mostrarSelector() ? 'Cancelar' : 'Asignar materia' }}
+          </button>
+        </div>
       </div>
+
+      @if (mostrarSelector()) {
+        <div class="asignar-panel">
+          <mat-form-field appearance="outline" class="asignar-select">
+            <mat-label>Seleccionar materia a asignar</mat-label>
+            <mat-select (selectionChange)="asignarMateria($event.value)">
+              @for (m of materiasSinAsignar(); track m.id) {
+                <mat-option [value]="m.id">
+                  {{ m.nombre }}{{ m.carreraNombre ? ' — ' + m.carreraNombre : '' }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
 
       @if (loading()) {
         <div class="loading-center"><mat-spinner diameter="40" /></div>
@@ -101,7 +122,7 @@
           <mat-icon>menu_book</mat-icon>
           <p>Este docente no tiene materias asignadas aún.</p>
           <span class="empty-hint">
-            Para asignar materias, ingresá a la carrera correspondiente y editá la materia.
+            Usá el botón "Asignar materia" para agregar materias a este docente.
           </span>
         </div>
 
@@ -121,42 +142,20 @@
               @for (m of grupo.items; track m.id) {
                 <div class="materia-card">
 
-                  <!-- Encabezado: nombre + año -->
                   <div class="materia-card-top">
                     <span class="materia-nombre">{{ m.nombre }}</span>
-                    @if (m.numeroAnio > 0) {
-                      <span class="anio-badge">{{ m.numeroAnio }}° año</span>
-                    }
+                    <div class="materia-card-actions">
+                      @if (m.numeroAnio > 0) {
+                        <span class="anio-badge">{{ m.numeroAnio }}° año</span>
+                      }
+                      <button mat-icon-button color="warn" (click)="quitarMateria(m.id)" matTooltip="Quitar materia">
+                        <mat-icon>remove_circle_outline</mat-icon>
+                      </button>
+                    </div>
                   </div>
 
                   @if (m.descripcion) {
                     <p class="materia-desc">{{ m.descripcion }}</p>
-                  }
-
-                  <!-- Horario -->
-                  @if (m.diaSemana || m.horaInicio || m.aula) {
-                    <div class="horario-row">
-                      @if (m.diaSemana) {
-                        <span class="horario-chip chip-dia">
-                          <mat-icon>event</mat-icon>
-                          {{ diaSemanaLabel(m.diaSemana) }}
-                        </span>
-                      }
-                      @if (m.horaInicio && m.horaFin) {
-                        <span class="horario-chip chip-hora">
-                          <mat-icon>schedule</mat-icon>
-                          {{ m.horaInicio }} - {{ m.horaFin }}
-                        </span>
-                      }
-                      @if (m.aula) {
-                        <span class="horario-chip chip-aula">
-                          <mat-icon>door_front</mat-icon>
-                          Aula {{ m.aula }}
-                        </span>
-                      }
-                    </div>
-                  } @else {
-                    <span class="sin-horario">Sin horario asignado</span>
                   }
 
                 </div>

@@ -9,6 +9,22 @@ import {
   DocenteResumen, DocenteResponse, MateriaDetalleDocente, UsuarioAdmin, AlumnoAdmin
 } from '../models/api-response.model';
 
+export interface HorarioRequest {
+  diaSemana: string;
+  horaInicio: string;
+  horaFin: string;
+  fechaInicioCursada?: string | null;
+  fechaFinCursada?: string | null;
+}
+
+export interface MateriaGestionRequest {
+  nombre: string;
+  descripcion?: string | null;
+  anioCarreraId: number;
+  docenteId?: number | null;
+  horarios?: HorarioRequest[];
+}
+
 export interface CarreraRequest {
   nombre: string;
   descripcion: string;
@@ -36,6 +52,7 @@ export interface DocenteRequest {
   dni: string;
   email: string;
   telefono: string;
+  materiasIds?: number[];
 }
 
 export interface PagoRequest {
@@ -259,5 +276,35 @@ export class AdminService {
 
   desactivarAdmin(id: number): Observable<ApiResponse<null>> {
     return this.http.delete<ApiResponse<null>>(`/api/admin/usuarios/${id}`);
+  }
+
+  // ── Materias (ABM) ────────────────────────────────────────────────────────
+
+  getTodasMaterias(): Observable<ApiResponse<MateriaResponse[]>> {
+    return this.http.get<ApiResponse<MateriaResponse[]>>('/api/materias');
+  }
+
+  getMateriasPorAnio(anioId: number): Observable<ApiResponse<MateriaResponse[]>> {
+    return this.http.get<ApiResponse<MateriaResponse[]>>(`/api/materias/anio-carrera/${anioId}`);
+  }
+
+  crearMateriaGestion(req: MateriaGestionRequest): Observable<ApiResponse<MateriaResponse>> {
+    return this.http.post<ApiResponse<MateriaResponse>>('/api/materias', req);
+  }
+
+  actualizarMateriaGestion(id: number, req: MateriaGestionRequest): Observable<ApiResponse<MateriaResponse>> {
+    return this.http.put<ApiResponse<MateriaResponse>>(`/api/materias/${id}`, req);
+  }
+
+  eliminarMateriaGestion(id: number): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/materias/${id}`);
+  }
+
+  asignarMateriaADocente(docenteId: number, materiaId: number): Observable<ApiResponse<MateriaDetalleDocente[]>> {
+    return this.http.post<ApiResponse<MateriaDetalleDocente[]>>(`/api/docentes/${docenteId}/materias/${materiaId}`, {});
+  }
+
+  desasignarMateriaDeDocente(docenteId: number, materiaId: number): Observable<ApiResponse<MateriaDetalleDocente[]>> {
+    return this.http.delete<ApiResponse<MateriaDetalleDocente[]>>(`/api/docentes/${docenteId}/materias/${materiaId}`);
   }
 }

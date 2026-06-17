@@ -1,11 +1,14 @@
-import { Component, inject, Inject, OnInit } from '@angular/core';
+import { Component, inject, Inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { DocenteResponse } from '../../../core/models/api-response.model';
+import { DocenteResponse, MateriaResponse } from '../../../core/models/api-response.model';
+import { AdminService } from '../../../core/services/admin.service';
 
 @Component({
   selector: 'app-docente-form-dialog',
@@ -13,7 +16,8 @@ import { DocenteResponse } from '../../../core/models/api-response.model';
   imports: [
     CommonModule, ReactiveFormsModule,
     MatDialogModule, MatButtonModule,
-    MatFormFieldModule, MatInputModule
+    MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatProgressSpinnerModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data ? 'Editar docente' : 'Nuevo docente' }}</h2>
@@ -50,6 +54,24 @@ import { DocenteResponse } from '../../../core/models/api-response.model';
           <input matInput formControlName="telefono" />
         </mat-form-field>
 
+        @if (!data) {
+          <mat-form-field appearance="outline">
+            <mat-label>Materias a asignar</mat-label>
+            @if (loadingMaterias()) {
+              <mat-select formControlName="materiasIds" multiple [disabled]="true">
+                <mat-option disabled>Cargando...</mat-option>
+              </mat-select>
+            } @else {
+              <mat-select formControlName="materiasIds" multiple>
+                @for (m of todasMaterias(); track m.id) {
+                  <mat-option [value]="m.id">{{ m.nombre }}{{ m.carreraNombre ? ' — ' + m.carreraNombre : '' }}</mat-option>
+                }
+              </mat-select>
+            }
+            <mat-hint>Opcional — se puede asignar después</mat-hint>
+          </mat-form-field>
+        }
+
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -66,15 +88,20 @@ import { DocenteResponse } from '../../../core/models/api-response.model';
   `]
 })
 export class DocenteFormDialogComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private dialogRef = inject(MatDialogRef<DocenteFormDialogComponent>);
+  private fb           = inject(FormBuilder);
+  private dialogRef    = inject(MatDialogRef<DocenteFormDialogComponent>);
+  private adminService = inject(AdminService);
+
+  todasMaterias  = signal<MateriaResponse[]>([]);
+  loadingMaterias = signal(false);
 
   form = this.fb.group({
-    nombres:   ['', Validators.required],
-    apellidos: ['', Validators.required],
-    dni:       ['', Validators.required],
-    email:     ['', [Validators.required, Validators.email]],
-    telefono:  ['']
+    nombres:    ['', Validators.required],
+    apellidos:  ['', Validators.required],
+    dni:        ['', Validators.required],
+    email:      ['', [Validators.required, Validators.email]],
+    telefono:   [''],
+    materiasIds: [[]] as [number[]]
   });
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: DocenteResponse | null) {}
@@ -88,11 +115,28 @@ export class DocenteFormDialogComponent implements OnInit {
         email:     this.data.email,
         telefono:  this.data.telefono ?? ''
       });
+    } else {
+      this.loadingMaterias.set(true);
+      this.adminService.getTodasMaterias().subscribe({
+        next: res => { this.todasMaterias.set(res.data); this.loadingMaterias.set(false); },
+        error: ()  => this.loadingMaterias.set(false)
+      });
     }
   }
 
   guardar() {
     if (this.form.invalid) return;
-    this.dialogRef.close(this.form.value);
+    const v = this.form.value;
+    const result: any = {
+      nombres:   v.nombres,
+      apellidos: v.apellidos,
+      dni:       v.dni,
+      email:     v.email,
+      telefono:  v.telefono ?? ''
+    };
+    if (!this.data) {
+      result.materiasIds = v.materiasIds ?? [];
+    }
+    this.dialogRef.close(result);
   }
 }

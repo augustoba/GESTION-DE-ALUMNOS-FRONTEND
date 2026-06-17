@@ -76,30 +76,6 @@
                     @if (m.descripcion) {
                       <p class="materia-desc">{{ m.descripcion }}</p>
                     }
-                    @if (m.diaSemana || m.horaInicio || m.aula) {
-                      <div class="horario-row">
-                        @if (m.diaSemana) {
-                          <span class="horario-chip chip-dia">
-                            <mat-icon>event</mat-icon>
-                            {{ diaSemanaLabel(m.diaSemana) }}
-                          </span>
-                        }
-                        @if (m.horaInicio && m.horaFin) {
-                          <span class="horario-chip chip-hora">
-                            <mat-icon>schedule</mat-icon>
-                            {{ m.horaInicio }} - {{ m.horaFin }}
-                          </span>
-                        }
-                        @if (m.aula) {
-                          <span class="horario-chip chip-aula">
-                            <mat-icon>door_front</mat-icon>
-                            Aula {{ m.aula }}
-                          </span>
-                        }
-                      </div>
-                    } @else {
-                      <span class="sin-horario">Sin horario asignado</span>
-                    }
                   </div>
                 }
               </div>

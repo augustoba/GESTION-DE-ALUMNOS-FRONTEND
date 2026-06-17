@@ -236,3 +236,25 @@
 .chip-aula { background: #faf5ff; color: #7e22ce; }
 
 .sin-horario { font-size: 0.76rem; color: #cbd5e1; font-style: italic; }
+
+.materias-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.materia-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.asignar-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.asignar-select { width: 100%; }

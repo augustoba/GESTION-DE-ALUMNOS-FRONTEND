@@ -160,15 +160,24 @@ export interface Carrera { id: number; nombre: string; }
 
 export interface DocenteResumen { id: number; nombres: string; apellidos: string; email: string; }
 
+export interface HorarioResponse {
+  id: number;
+  diaSemana: string;
+  horaInicio: string;
+  horaFin: string;
+  fechaInicioCursada: string | null;
+  fechaFinCursada: string | null;
+}
+
 export interface MateriaResponse {
   id: number;
   nombre: string;
   descripcion: string | null;
+  anioCarreraId: number | null;
+  numeroAnio: number;
+  carreraNombre: string | null;
   docente: DocenteResumen | null;
-  diaSemana?: string | null;
-  horaInicio?: string | null;
-  horaFin?: string | null;
-  aula?: string | null;
+  horarios: HorarioResponse[];
 }
 
 export interface ComisionResponse {
@@ -212,10 +221,6 @@ export interface MateriaDetalleDocente {
   descripcion: string | null;
   carreraNombre: string | null;
   numeroAnio: number;
-  diaSemana?: string | null;
-  horaInicio?: string | null;
-  horaFin?: string | null;
-  aula?: string | null;
 }
 
 // ── Docente portal ────────────────────────────────────────────────────────────

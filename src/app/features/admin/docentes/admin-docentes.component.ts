@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
+import { RouterLink } from '@angular/router';
 
 import { AdminService } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -27,7 +28,8 @@ import { DocenteFormDialogComponent } from './docente-form-dialog.component';
     CommonModule,
     MatSidenavModule, MatToolbarModule, MatIconModule, MatButtonModule,
     MatTableModule, MatProgressSpinnerModule, MatSnackBarModule,
-    MatDialogModule, MatTooltipModule, MatListModule, MatDividerModule, MatChipsModule
+    MatDialogModule, MatTooltipModule, MatListModule, MatDividerModule, MatChipsModule,
+    RouterLink
   ],
   templateUrl: './admin-docentes.component.html',
   styleUrl: './admin-docentes.component.scss'

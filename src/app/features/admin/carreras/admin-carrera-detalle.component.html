@@ -246,25 +246,13 @@
                           </div>
                         }
 
-                        <!-- Horario -->
-                        @if (m.diaSemana || m.horaInicio || m.aula) {
+                        <!-- Horario: ver ABM Materias para gestión de horarios -->
+                        @if (m.horarios?.length) {
                           <div class="materia-horario">
-                            @if (m.diaSemana) {
-                              <span class="horario-chip">
-                                <mat-icon>event</mat-icon>
-                                {{ diaSemanaLabel(m.diaSemana) }}
-                              </span>
-                            }
-                            @if (m.horaInicio && m.horaFin) {
+                            @for (h of m.horarios; track h.id) {
                               <span class="horario-chip">
                                 <mat-icon>schedule</mat-icon>
-                                {{ m.horaInicio }} - {{ m.horaFin }}
-                              </span>
-                            }
-                            @if (m.aula) {
-                              <span class="horario-chip">
-                                <mat-icon>door_front</mat-icon>
-                                Aula {{ m.aula }}
+                                {{ diaSemanaLabel(h.diaSemana) }} {{ h.horaInicio.slice(0,5) }}-{{ h.horaFin.slice(0,5) }}
                               </span>
                             }
                           </div>
